@@ -15,7 +15,7 @@ const unsigned char* display_udp(const unsigned char* bytes, uint16_t* dest_port
         printf("UDP: src_port=%d dst_port=%d", *src_port, *dest_port);
         if(verbosity <= 1)
         {
-            putchar(' ');
+            printf("    ");
         }
         else
         {
@@ -44,7 +44,7 @@ const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port
         printf("TCP: src_port=%d dst_port=%d", *src_port, *dest_port);
         if(verbosity <= 1)
         {
-            putchar(' ');
+            printf("    ");
         }
         else
         {

@@ -17,10 +17,11 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, uint8_t* pr
 
     if(verbosity <= 2)
     {
-        printf("IP: %s -> %s", inet_ntop(AF_INET, &(ip->saddr), buffer, INET_ADDRSTRLEN), inet_ntop(AF_INET, &(ip->daddr), buffer, INET_ADDRSTRLEN));
+        printf("IP: %s -> ", inet_ntop(AF_INET, &(ip->saddr), buffer, INET_ADDRSTRLEN));
+        printf("%s", inet_ntop(AF_INET, &(ip->daddr), buffer, INET_ADDRSTRLEN));
         if(verbosity <= 1)
         {
-            putchar(' ');
+            printf("    ");
         }
         else
         {
@@ -69,10 +70,11 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, uint8_t* pr
 
     if(verbosity <= 2)
     {
-        printf("IP: %s -> %s", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN), inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
+        printf("IP: %s -> ", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
+        printf("%s", inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
         if(verbosity <= 1)
         {
-            putchar(' ');
+            printf("    ");
         }
         else
         {
