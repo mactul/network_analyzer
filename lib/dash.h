@@ -28,5 +28,6 @@ typedef struct {
 bool dash_arg_parser(int* argc, char* argv[], dash_Longopt* options);
 void dash_print_usage(const char* argv0, const char* header, const char* footer, const char* required_arguments[], const dash_Longopt* options, FILE* output_file);
 void dash_print_summary(int argc, char** argv, const dash_Longopt* options, FILE* output_file);
+void dash_free(dash_Longopt* options);
 
 #endif

@@ -690,3 +690,25 @@ REORGANIZE:
 
     return true;
 }
+
+void dash_free(dash_Longopt* options)
+{
+    int structure_length = 0;
+    while (options[structure_length].opt_name != '\0' || options[structure_length].longopt_name != NULL)
+    {
+        // Can't dereference a NULL pointer
+        if (options[structure_length].user_pointer == NULL)
+        {
+            continue;
+        }
+
+        // We put each pointer to NULL so we can know if they were allocated or not int the future.
+        if(options[structure_length].param_name != NULL)
+        {
+            char** p = (char**)options[structure_length].user_pointer;
+            free(*p);
+            *p = NULL;
+        }
+        structure_length++;
+    }
+}
