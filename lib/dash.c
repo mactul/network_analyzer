@@ -439,6 +439,16 @@ bool dash_arg_parser(int* argc, char* argv[], dash_Longopt* options)
         {
             return false;
         }
+
+        // We put each pointer to NULL so we can know if they were allocated or not int the future.
+        if(options[structure_length].param_name == NULL)
+        {
+            *((bool*)options[structure_length].user_pointer) = false;
+        }
+        else
+        {
+            *((char**)options[structure_length].user_pointer) = NULL;
+        }
         structure_length++;
     }
 

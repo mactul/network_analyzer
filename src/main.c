@@ -10,8 +10,18 @@
 #include "ethernet_display.h"
 #include "transport_display.h"
 
+#include "lib/dash.h"
+
 #define MAX_INTERFACE_NAME 256
 #define MAX_INT_STR_SIZE 8
+
+typedef struct {
+    char* interface;
+    char* offline;
+    char* filter;
+    char* verbosity;
+    bool help;
+} Arguments;
 
 static char _errbuf[PCAP_ERRBUF_SIZE];
 
@@ -100,10 +110,40 @@ void callback(unsigned char* user __attribute__((unused)), const struct pcap_pkt
     putchar('\n');
 }
 
-int main()
+
+static void print_help(const char* program_name, const dash_Longopt* options, FILE* output_file)
+{
+    dash_print_usage(program_name, "my_wireshark, version 0.0.1", "", NULL, options, output_file);
+}
+
+int main(int argc, char* argv[])
 {
     int r;
     int return_code = 1;
+
+    Arguments arguments;
+
+    dash_Longopt options[] = {
+        {.user_pointer = &(arguments.help), .longopt_name="help", .opt_name='h', .description = "Display this help"},
+        {.user_pointer = &(arguments.interface), .longopt_name = "interface", .opt_name = 'i', .param_name = "interface", .description = "Listen on $ (if unset, trigger a prompt)"},
+        {.user_pointer = &(arguments.filter), .longopt_name = "filter", .opt_name = 'f', .param_name = "filter", .description = "A pcap $ to only get some packets."},
+        {.user_pointer = &(arguments.offline), .longopt_name = "offline", .opt_name = 'o', .param_name = "file", .description = "An input $ that can be used instead of sniffing the network"},
+        {.user_pointer = &(arguments.verbosity), .longopt_name = "verbosity", .opt_name = 'v', .param_name = "level", .description = "Set the verbosity to $, authorized levels are 1, 2 or 3"},
+        {.user_pointer = NULL}
+    };
+
+    if (!dash_arg_parser(&argc, argv, options))
+    {
+        fputs("Invalid arguments\n", stderr);
+        print_help(argv[0], options, stderr);
+        return 1;
+    }
+
+    if(arguments.help)
+    {
+        print_help(argv[0], options, stdout);
+        return 0;
+    }
 
     pcap_t* interface = NULL;
     char interface_name[MAX_INTERFACE_NAME];
