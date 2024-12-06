@@ -39,7 +39,6 @@ void select_interface(char* buffer, unsigned int buffer_size)
         int counter = 0;
         char str[MAX_INT_STR_SIZE];
         current_interface = interfaces_list_root;
-        printf("\033[H\033[2J");
         while(current_interface != NULL)
         {
             counter++;
@@ -71,37 +70,63 @@ void select_interface(char* buffer, unsigned int buffer_size)
 
 
 
-void callback(unsigned char* user __attribute__((unused)), const struct pcap_pkthdr* header, const unsigned char* bytes)
+void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned char* bytes)
 {
     uint8_t protocol;
     uint16_t dest_port = 0;
     uint16_t src_port = 0;
     const unsigned char* left_bytes = bytes;
-    left_bytes = display_ethernet_frame(left_bytes);
-    left_bytes = display_ip(left_bytes, &protocol);
+    int verbosity = (int)((size_t)user);
+    left_bytes = display_ethernet_frame(left_bytes, verbosity);
+    left_bytes = display_ip(left_bytes, &protocol, verbosity);
     if(protocol == 0x11)
     {
-        left_bytes = display_udp(left_bytes, &dest_port, &src_port);
+        left_bytes = display_udp(left_bytes, &dest_port, &src_port, verbosity);
     }
     else if(protocol == 0x06)
     {
-        left_bytes = display_tcp(left_bytes, &dest_port, &src_port);
+        left_bytes = display_tcp(left_bytes, &dest_port, &src_port, verbosity);
     }
 
     if(dest_port == 67 || dest_port == 68 || src_port == 67 || src_port == 68)
     {
-        left_bytes = display_dhcp(left_bytes);
+        if(verbosity <= 2)
+        {
+            printf("DHCP");
+            if(verbosity == 2)
+            {
+                putchar('\n');
+            }
+        }
+        else
+        {
+            left_bytes = display_dhcp(left_bytes);
+        }
     }
     else if(dest_port == 53 || src_port == 53)
     {
-        left_bytes = display_dns(left_bytes);
+        if(verbosity <= 2)
+        {
+            printf("DNS");
+            if(verbosity == 2)
+            {
+                putchar('\n');
+            }
+        }
+        else
+        {
+            left_bytes = display_dns(left_bytes);
+        }
     }
-    printf("Data:\n");
-    display_generic_bytes(left_bytes, (int)header->caplen - (int)(left_bytes - bytes), 1);
+    if(verbosity > 2)
+    {
+        printf("Data:\n");
+        display_generic_bytes(left_bytes, (int)header->caplen - (int)(left_bytes - bytes), 1);
+    }
     putchar('\n');
 }
 
-int run_pcap(void)
+int run_pcap(int verbosity)
 {
     int r;
     int return_code = 1;
@@ -138,7 +163,7 @@ int run_pcap(void)
 
     printf("start capture\n");
 
-    pcap_loop(interface, -1, callback, NULL);
+    pcap_loop(interface, -1, callback, (u_char*)((size_t)verbosity));
 
     return_code = 0;
 CLOSE:

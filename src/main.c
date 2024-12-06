@@ -21,6 +21,7 @@ static void print_help(const char* program_name, const dash_Longopt* options, FI
 
 int main(int argc, char* argv[])
 {
+    int verbosity = 3;
     int return_code = 1;
 
     Arguments arguments;
@@ -30,7 +31,7 @@ int main(int argc, char* argv[])
         {.user_pointer = &(arguments.interface), .longopt_name = "interface", .opt_name = 'i', .param_name = "interface", .description = "Listen on $ (if unset, trigger a prompt)"},
         {.user_pointer = &(arguments.filter), .longopt_name = "filter", .opt_name = 'f', .param_name = "filter", .description = "A pcap $ to only get some packets."},
         {.user_pointer = &(arguments.offline), .longopt_name = "offline", .opt_name = 'o', .param_name = "file", .description = "An input $ that can be used instead of sniffing the network"},
-        {.user_pointer = &(arguments.verbosity), .longopt_name = "verbosity", .opt_name = 'v', .param_name = "level", .description = "Set the verbosity to $, authorized levels are 1, 2 or 3"},
+        {.user_pointer = &(arguments.verbosity), .longopt_name = "verbosity", .opt_name = 'v', .param_name = "level", .description = "Set the verbosity to $, authorized levels are 1, 2 or 3 (default: 3)"},
         {.user_pointer = NULL}
     };
 
@@ -48,7 +49,18 @@ int main(int argc, char* argv[])
         goto END;
     }
 
-    return_code = run_pcap();
+    if(arguments.verbosity != NULL)
+    {
+        verbosity = atoi(arguments.verbosity);
+        if(verbosity != 1 && verbosity != 2 && verbosity != 3)
+        {
+            fputs("Invalid verbosity\n", stderr);
+            print_help(argv[0], options, stderr);
+            goto END;
+        }
+    }
+
+    return_code = run_pcap(verbosity);
 
 END:
     dash_free(options);
