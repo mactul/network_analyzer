@@ -43,11 +43,11 @@ const unsigned char* display_arp(const unsigned char* bytes, int verbosity)
         printf("\tOperation: %d\n", ntohs(arp->ar_op));
         printf("\tSender Hardware Address: ");
         display_hardware_addr(bytes + sizeof(struct arphdr), arp->ar_hln);
-        printf("\tSender Protocol Address: ");
+        printf("\n\tSender Protocol Address: ");
         display_protocol_addr(bytes + sizeof(struct arphdr) + arp->ar_hln, arp->ar_pln);
         printf("\tTarget Hardware Address: ");
         display_hardware_addr(bytes + sizeof(struct arphdr) + arp->ar_hln + arp->ar_pln, arp->ar_hln);
-        printf("\tTarget Protocol Address: ");
+        printf("\n\tTarget Protocol Address: ");
         display_protocol_addr(bytes + sizeof(struct arphdr) + 2 * arp->ar_hln + arp->ar_pln, arp->ar_pln);
     }
 

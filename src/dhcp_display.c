@@ -79,7 +79,7 @@ const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
         bootp->sname[63] = '\0';
         bootp->file[127] = '\0';
 
-        printf("\tServer name: %s\n", bootp->sname);
+        printf("\n\tServer name: %s\n", bootp->sname);
         printf("\tFile Name: %s\n", bootp->file);
 
         printf("\tVendor specific:\n");

@@ -10,7 +10,7 @@ void display_hardware_addr(const uint8_t* addr, uint8_t len)
     {
         printf("%x:", addr[i]);
     }
-    printf("%x\n", addr[len-1]);
+    printf("%x", addr[len-1]);
 }
 
 
