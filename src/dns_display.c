@@ -43,7 +43,6 @@ bool print_len_str(const unsigned char* bytes, unsigned int *offset, bool displa
 
 static void display_rr(const unsigned char* bytes, unsigned int* offset, int verbosity)
 {
-
     if(verbosity > 2)
         printf("\t\tName: ");
     while(print_len_str(bytes, offset, verbosity > 2))
@@ -79,7 +78,7 @@ static void display_rr(const unsigned char* bytes, unsigned int* offset, int ver
 
 const unsigned char* display_dns(const unsigned char* bytes, int verbosity)
 {
-    struct dnshdr* dns = (struct dnshdr*) bytes;
+    const struct dnshdr* dns = (const struct dnshdr*) bytes;
     uint16_t flags = ntohs(dns->flags);
 
     printf("DNS");

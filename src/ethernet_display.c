@@ -8,7 +8,7 @@
 
 const unsigned char* display_ethernet_frame(const unsigned char* bytes, uint16_t* ether_type, int verbosity)
 {
-    struct ether_header* ethernet = (struct ether_header*)bytes;
+    const struct ether_header* ethernet = (const struct ether_header*)bytes;
 
     *ether_type = ntohs(ethernet->ether_type);
 

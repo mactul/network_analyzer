@@ -9,7 +9,7 @@
 static const unsigned char* display_ipv4(const unsigned char* bytes, uint8_t* protocol, int verbosity)
 {
     char buffer[INET_ADDRSTRLEN];
-    struct iphdr* ip = (struct iphdr*)bytes;
+    const struct iphdr* ip = (const struct iphdr*)bytes;
     uint16_t frag_off = ntohs(ip->frag_off);
     uint8_t flags = (uint8_t)(frag_off >> 13);
 
@@ -63,7 +63,7 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, uint8_t* pr
 static const unsigned char* display_ipv6(const unsigned char* bytes, uint8_t* protocol, int verbosity)
 {
     char buffer[INET6_ADDRSTRLEN];
-    struct ip6_hdr* ip = (struct ip6_hdr*)bytes;
+    const struct ip6_hdr* ip = (const struct ip6_hdr*)bytes;
     uint32_t version_tc_fl = ntohl(ip->ip6_ctlun.ip6_un1.ip6_un1_flow);
 
     *protocol =  ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
@@ -98,7 +98,7 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, uint8_t* pr
 
 const unsigned char* display_ip(const unsigned char* bytes, uint8_t* protocol, int verbosity)
 {
-    struct iphdr* ip = (struct iphdr*)bytes;
+    const struct iphdr* ip = (const struct iphdr*)bytes;
     if(ip->version == 4)
     {
         return display_ipv4(bytes, protocol, verbosity);

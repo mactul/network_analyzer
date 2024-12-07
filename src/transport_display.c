@@ -8,7 +8,7 @@
 
 const unsigned char* display_udp(const unsigned char* bytes, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
-    struct udphdr* udp = (struct udphdr*)bytes;
+    const struct udphdr* udp = (const struct udphdr*)bytes;
     *dest_port = ntohs(udp->uh_dport);
     *src_port = ntohs(udp->uh_sport);
     if(verbosity <= 2)
@@ -36,7 +36,7 @@ const unsigned char* display_udp(const unsigned char* bytes, uint16_t* dest_port
 
 const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
-    struct tcphdr* tcp = (struct tcphdr*)bytes;
+    const struct tcphdr* tcp = (const struct tcphdr*)bytes;
     *dest_port = ntohs(tcp->th_dport);
     *src_port = ntohs(tcp->th_sport);
 
@@ -72,7 +72,7 @@ const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port
 
 const unsigned char* display_icmp(const unsigned char* bytes, int verbosity)
 {
-    struct icmphdr* icmp = (struct icmphdr*)bytes;
+    const struct icmphdr* icmp = (const struct icmphdr*)bytes;
 
     printf("ICMP");
     if(verbosity <= 1)

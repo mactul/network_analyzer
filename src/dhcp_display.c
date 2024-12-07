@@ -30,7 +30,7 @@ const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
 {
     bool dhcp = false;
     char buffer[INET_ADDRSTRLEN];
-    struct bootp* bootp = (struct bootp*)bytes;
+    const struct bootp* bootp = (const struct bootp*)bytes;
 
     if(memcmp(bootp->vendor_specific, "\x63\x82\x53\x63", 4) == 0)
     {
@@ -72,15 +72,15 @@ const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
         printf("\tClient Hardware address ");
         if(bootp->hardware_addr_len > 16)
         {
-            bootp->hardware_addr_len = 16;
+            display_hardware_addr(bootp->chaddr, 16);
         }
-        display_hardware_addr(bootp->chaddr, bootp->hardware_addr_len);
+        else
+        {
+            display_hardware_addr(bootp->chaddr, bootp->hardware_addr_len);
+        }
 
-        bootp->sname[63] = '\0';
-        bootp->file[127] = '\0';
-
-        printf("\n\tServer name: %s\n", bootp->sname);
-        printf("\tFile Name: %s\n", bootp->file);
+        printf("\n\tServer name: %.64s\n", bootp->sname);
+        printf("\tFile Name: %.127s\n", bootp->file);
 
         printf("\tVendor specific:\n");
         display_generic_bytes(bootp->vendor_specific, 64, 2);
