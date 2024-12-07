@@ -126,38 +126,70 @@ void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned cha
     putchar('\n');
 }
 
-int run_pcap(int verbosity)
+int run_pcap(int verbosity, char* interface_name, char* filter, char* offline_filename)
 {
     int r;
     int return_code = 1;
     pcap_t* interface = NULL;
-    char interface_name[MAX_INTERFACE_NAME];
+    char interface_buffer[MAX_INTERFACE_NAME];
 
     pcap_init(PCAP_CHAR_ENC_UTF_8, _errbuf);
 
-    select_interface(interface_name, MAX_INTERFACE_NAME);
-
-    printf("Scanning interface: %s\n", interface_name);
-
-    if((interface = pcap_create(interface_name, _errbuf)) == NULL)
+    if(offline_filename != NULL)
     {
-        fprintf(stderr, "%s\n", _errbuf);
-        goto CLOSE;
+       interface = pcap_open_offline(offline_filename, _errbuf);
     }
-
-    pcap_set_immediate_mode(interface, 1);
-    pcap_set_promisc(interface, 1);
-
-    if((r = pcap_activate(interface)))
+    else
     {
-        if(r < 0)
+        if(interface_name == NULL)
         {
-            pcap_perror(interface, "Activation error: ");
+            interface_name = interface_buffer;
+            select_interface(interface_name, MAX_INTERFACE_NAME);
+        }
+
+        printf("Scanning interface: %s\n", interface_name);
+
+        if((interface = pcap_create(interface_name, _errbuf)) == NULL)
+        {
+            fprintf(stderr, "%s\n", _errbuf);
             goto CLOSE;
         }
-        else
+
+        pcap_set_immediate_mode(interface, 1);
+        pcap_set_promisc(interface, 1);
+
+        if((r = pcap_activate(interface)))
         {
-            pcap_perror(interface, "Activation warning: ");
+            if(r < 0)
+            {
+                pcap_perror(interface, "Activation error: ");
+                goto CLOSE;
+            }
+            else
+            {
+                pcap_perror(interface, "Activation warning: ");
+            }
+        }
+    }
+
+    if(filter != NULL)
+    {
+        struct bpf_program compiled_filter;
+        bpf_u_int32 ip, mask;
+        if(pcap_lookupnet(interface_name, &ip, &mask, _errbuf))
+        {
+            fprintf(stderr, "%s\n", _errbuf);
+            goto CLOSE;
+        }
+        if(pcap_compile(interface, &compiled_filter, filter, 0, mask))
+        {
+            pcap_perror(interface, "Filter compilation error: ");
+            goto CLOSE;
+        }
+        if(pcap_setfilter(interface, &compiled_filter))
+        {
+            pcap_perror(interface, "Filter can't be set: ");
+            goto CLOSE;
         }
     }
 

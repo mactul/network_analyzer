@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    return_code = run_pcap(verbosity);
+    return_code = run_pcap(verbosity, arguments.interface, arguments.filter, arguments.offline);
 
 END:
     dash_free(options);
