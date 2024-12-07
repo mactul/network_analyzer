@@ -36,7 +36,7 @@ void display_hardware_addr(uint8_t* addr, uint8_t len)
 }
 
 
-const unsigned char* display_dhcp(const unsigned char* bytes)
+const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
 {
     bool dhcp = false;
     char buffer[INET_ADDRSTRLEN];
@@ -44,42 +44,57 @@ const unsigned char* display_dhcp(const unsigned char* bytes)
 
     if(memcmp(bootp->vendor_specific, "\x63\x82\x53\x63", 4) == 0)
     {
-        puts("DHCP:");
+        printf("DHCP");
         dhcp = true;
     }
     else
     {
-        puts("BOOTP:");
+        printf("BOOTP");
     }
-    printf("\tCode OP: %d\n", bootp->code_op);
-    printf("\tHardware Type: %d\n", bootp->hardware_type);
-    printf("\tHardware address Length: %d\n", bootp->hardware_addr_len);
-    printf("\tHop Count: %d\n", bootp->hops);
-    printf("\tTransaction ID: 0x%08x\n", ntohl(bootp->xid));
-    printf("\tseconds: %d\n", ntohs(bootp->secs));
-    if(dhcp)
+    if(verbosity <= 1)
     {
-        printf("\tFlags: %d\n", ntohs(bootp->flags));
+        printf("    ");
     }
-    printf("\tClient IP (ciaddr) %s\n", inet_ntop(AF_INET, &(bootp->ciaddr), buffer, INET_ADDRSTRLEN));
-    printf("\tYour IP (yiaddr) %s\n", inet_ntop(AF_INET, &(bootp->yiaddr), buffer, INET_ADDRSTRLEN));
-    printf("\tServer IP (siaddr) %s\n", inet_ntop(AF_INET, &(bootp->siaddr), buffer, INET_ADDRSTRLEN));
-    printf("\tGateway IP (giaddr) %s\n", inet_ntop(AF_INET, &(bootp->giaddr), buffer, INET_ADDRSTRLEN));
-    printf("\tClient Hardware address ");
-    if(bootp->hardware_addr_len > 16)
+    else
     {
-        bootp->hardware_addr_len = 16;
+        if(verbosity > 2)
+        {
+            putchar(':');
+        }
+        putchar('\n');
     }
-    display_hardware_addr(bootp->chaddr, bootp->hardware_addr_len);
+    if(verbosity > 2)
+    {
+        printf("\tCode OP: %d\n", bootp->code_op);
+        printf("\tHardware Type: %d\n", bootp->hardware_type);
+        printf("\tHardware address Length: %d\n", bootp->hardware_addr_len);
+        printf("\tHop Count: %d\n", bootp->hops);
+        printf("\tTransaction ID: 0x%08x\n", ntohl(bootp->xid));
+        printf("\tseconds: %d\n", ntohs(bootp->secs));
+        if(dhcp)
+        {
+            printf("\tFlags: %d\n", ntohs(bootp->flags));
+        }
+        printf("\tClient IP (ciaddr) %s\n", inet_ntop(AF_INET, &(bootp->ciaddr), buffer, INET_ADDRSTRLEN));
+        printf("\tYour IP (yiaddr) %s\n", inet_ntop(AF_INET, &(bootp->yiaddr), buffer, INET_ADDRSTRLEN));
+        printf("\tServer IP (siaddr) %s\n", inet_ntop(AF_INET, &(bootp->siaddr), buffer, INET_ADDRSTRLEN));
+        printf("\tGateway IP (giaddr) %s\n", inet_ntop(AF_INET, &(bootp->giaddr), buffer, INET_ADDRSTRLEN));
+        printf("\tClient Hardware address ");
+        if(bootp->hardware_addr_len > 16)
+        {
+            bootp->hardware_addr_len = 16;
+        }
+        display_hardware_addr(bootp->chaddr, bootp->hardware_addr_len);
 
-    bootp->sname[63] = '\0';
-    bootp->file[127] = '\0';
+        bootp->sname[63] = '\0';
+        bootp->file[127] = '\0';
 
-    printf("\tServer name: %s\n", bootp->sname);
-    printf("\tFile Name: %s\n", bootp->file);
+        printf("\tServer name: %s\n", bootp->sname);
+        printf("\tFile Name: %s\n", bootp->file);
 
-    printf("\tVendor specific:\n");
-    display_generic_bytes(bootp->vendor_specific, 64, 2);
+        printf("\tVendor specific:\n");
+        display_generic_bytes(bootp->vendor_specific, 64, 2);
+    }
 
     return bytes + sizeof(struct bootp);
 }

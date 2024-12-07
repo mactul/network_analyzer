@@ -1,6 +1,6 @@
 #ifndef DNS_DISPLAY_H
 #define DNS_DISPLAY_H
 
-const unsigned char* display_dns(const unsigned char* bytes);
+const unsigned char* display_dns(const unsigned char* bytes, int verbosity);
 
 #endif

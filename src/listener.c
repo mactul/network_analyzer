@@ -87,36 +87,13 @@ void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned cha
     {
         left_bytes = display_tcp(left_bytes, &dest_port, &src_port, verbosity);
     }
-
     if(dest_port == 67 || dest_port == 68 || src_port == 67 || src_port == 68)
     {
-        if(verbosity <= 2)
-        {
-            printf("DHCP");
-            if(verbosity == 2)
-            {
-                putchar('\n');
-            }
-        }
-        else
-        {
-            left_bytes = display_dhcp(left_bytes);
-        }
+        left_bytes = display_dhcp(left_bytes, verbosity);
     }
     else if(dest_port == 53 || src_port == 53)
     {
-        if(verbosity <= 2)
-        {
-            printf("DNS");
-            if(verbosity == 2)
-            {
-                putchar('\n');
-            }
-        }
-        else
-        {
-            left_bytes = display_dns(left_bytes);
-        }
+        left_bytes = display_dns(left_bytes, verbosity);
     }
     if(verbosity > 2)
     {
