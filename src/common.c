@@ -4,6 +4,16 @@
 #include "common.h"
 
 
+void display_hardware_addr(const uint8_t* addr, uint8_t len)
+{
+    for(uint8_t i = 0; i < len-1; i++)
+    {
+        printf("%x:", addr[i]);
+    }
+    printf("%x\n", addr[len-1]);
+}
+
+
 void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
 {
     struct winsize w;

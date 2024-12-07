@@ -1,5 +1,6 @@
 #include <netinet/udp.h>
 #include <netinet/tcp.h>
+#include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 
@@ -67,4 +68,32 @@ const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port
     }
 
     return bytes + tcp->th_off * 4;
+}
+
+const unsigned char* display_icmp(const unsigned char* bytes, int verbosity)
+{
+    struct icmphdr* icmp = (struct icmphdr*)bytes;
+
+    printf("ICMP");
+    if(verbosity <= 1)
+    {
+        printf("    ");
+    }
+    else
+    {
+        if(verbosity > 2)
+        {
+            putchar(':');
+        }
+        putchar('\n');
+    }
+
+    if(verbosity > 2)
+    {
+        printf("\tType: %d\n", icmp->type);
+        printf("\tCode: %d\n", icmp->code);
+        printf("\tChecksum: 0x%04x\n", icmp->checksum);
+    }
+
+    return bytes + 4;
 }

@@ -26,16 +26,6 @@ struct bootp {
 } __attribute__((packed));
 
 
-void display_hardware_addr(uint8_t* addr, uint8_t len)
-{
-    for(uint8_t i = 0; i < len-1; i++)
-    {
-        printf("%x:", addr[i]);
-    }
-    printf("%x\n", addr[len-1]);
-}
-
-
 const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
 {
     bool dhcp = false;

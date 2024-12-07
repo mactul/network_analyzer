@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pcap.h>
+#include <net/ethernet.h>
 
 #include "common.h"
 #include "ip_display.h"
+#include "arp_display.h"
 #include "dns_display.h"
 #include "dhcp_display.h"
 #include "ethernet_display.h"
@@ -72,14 +74,32 @@ void select_interface(char* buffer, unsigned int buffer_size)
 
 void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned char* bytes)
 {
-    uint8_t protocol;
+    uint16_t ether_type;
+    uint8_t protocol = 0xFF;
     uint16_t dest_port = 0;
     uint16_t src_port = 0;
     const unsigned char* left_bytes = bytes;
     int verbosity = (int)((size_t)user);
-    left_bytes = display_ethernet_frame(left_bytes, verbosity);
-    left_bytes = display_ip(left_bytes, &protocol, verbosity);
-    if(protocol == 0x11)
+    left_bytes = display_ethernet_frame(left_bytes, &ether_type, verbosity);
+
+    if(ether_type == ETHERTYPE_ARP)
+    {
+        left_bytes = display_arp(left_bytes, verbosity);
+    }
+    else if(ether_type == ETHERTYPE_IP || ether_type == ETHERTYPE_IPV6)
+    {
+        left_bytes = display_ip(left_bytes, &protocol, verbosity);
+    }
+
+    if(protocol == 0x01)
+    {
+        left_bytes = display_icmp(left_bytes, verbosity);
+    }
+    else if(protocol == 0x3A)
+    {
+        left_bytes = display_icmp(left_bytes, verbosity);
+    }
+    else if(protocol == 0x11)
     {
         left_bytes = display_udp(left_bytes, &dest_port, &src_port, verbosity);
     }
@@ -87,6 +107,7 @@ void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned cha
     {
         left_bytes = display_tcp(left_bytes, &dest_port, &src_port, verbosity);
     }
+
     if(dest_port == 67 || dest_port == 68 || src_port == 67 || src_port == 68)
     {
         left_bytes = display_dhcp(left_bytes, verbosity);
@@ -95,6 +116,7 @@ void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned cha
     {
         left_bytes = display_dns(left_bytes, verbosity);
     }
+
     if(verbosity > 2)
     {
         printf("Data:\n");
