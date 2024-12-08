@@ -169,6 +169,30 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
     {
         left_bytes = display_https(left_bytes, end_stream, verbosity);
     }
+    else if(dest_port == 25 || src_port == 25)
+    {
+        left_bytes = display_smtp(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 587 || src_port == 587 || dest_port == 465 || src_port == 465)
+    {
+        left_bytes = display_smtps(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 110 || src_port == 110)
+    {
+        left_bytes = display_pop(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 143 || src_port == 143 || dest_port == 220 || src_port == 220)
+    {
+        left_bytes = display_imap(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 993 || src_port == 993)
+    {
+        left_bytes = display_imaps(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 23 || src_port == 23)
+    {
+        left_bytes = display_telnet(left_bytes, end_stream, verbosity);
+    }
 
     if(verbosity > 2)
     {
