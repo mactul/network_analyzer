@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-#include "ip_display.h"
+#include "transport_display.h"
 
 const unsigned char* display_udp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {

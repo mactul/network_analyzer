@@ -100,7 +100,7 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, const unsig
     else
     {
         printf("IP:\n");
-        printf("\tVersion: %d\n", version_tc_fl >> 28);
+        printf("\tVersion: %u\n", version_tc_fl >> 28);
         printf("\tTraffic class: 0x%02x\n", (version_tc_fl >> 20) & 0xFF);
         printf("\tFlow Label: 0x%05x\n", version_tc_fl & 0xFFFFF);
         printf("\tPayload Length: %u\n", ntohs(ip->ip6_ctlun.ip6_un1.ip6_un1_plen));

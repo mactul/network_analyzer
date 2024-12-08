@@ -11,14 +11,16 @@
 #include "dhcp_display.h"
 #include "ethernet_display.h"
 #include "transport_display.h"
+#include "text_based_display.h"
 
+#include "listener.h"
 
 #define MAX_INTERFACE_NAME 256
 #define MAX_INT_STR_SIZE 8
 
 static char _errbuf[PCAP_ERRBUF_SIZE];
 
-void select_interface(char* buffer, unsigned int buffer_size)
+static void select_interface(char* buffer, unsigned int buffer_size)
 {
     int answer = 0;
     pcap_if_t* interfaces_list_root;
@@ -77,7 +79,7 @@ void select_interface(char* buffer, unsigned int buffer_size)
 
 
 
-void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned char* bytes)
+static void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned char* bytes)
 {
     uint16_t ether_type = 0x0000;
     uint8_t protocol = 0xFF;
@@ -158,6 +160,14 @@ void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned cha
             fprintf(stderr, "Malformed DNS header\n");
             return;
         }
+    }
+    else if(dest_port == 80 || src_port == 80)
+    {
+        left_bytes = display_http(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 443 || src_port == 443)
+    {
+        left_bytes = display_https(left_bytes, end_stream, verbosity);
     }
 
     if(verbosity > 2)

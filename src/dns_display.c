@@ -23,7 +23,7 @@ enum PRINT_ERRORS {
     PE_ERROR
 };
 
-enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display)
+static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display)
 {
     uint8_t len = bytes[*offset];
     (*offset)++;
@@ -43,7 +43,7 @@ enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char*
         *offset += len;
         return bytes[*offset] == 0 ? PE_NO_MORE : PE_MORE_LEFT;
     }
-    unsigned int ptr = (unsigned int)(((uint16_t)(len & 0b00111111) << 8) | (uint16_t)bytes[*offset]);
+    unsigned int ptr = (unsigned int)(((uint16_t)(len & ((1 << 6) - 1)) << 8) | (uint16_t)bytes[*offset]);
     if(bytes + ptr >= end_stream)
     {
         return PE_ERROR;
@@ -82,7 +82,7 @@ static bool display_rr(const unsigned char* bytes, const unsigned char* end_stre
         *offset += 2;
         printf("\t\tClass: %d\n", ntohs(*((uint16_t*)(bytes + *offset))));
         *offset += 2;
-        printf("\t\tTTL: %d\n", ntohl(*((uint32_t*)(bytes + *offset))));
+        printf("\t\tTTL: %u\n", ntohl(*((uint32_t*)(bytes + *offset))));
         *offset += 4;
     }
     else

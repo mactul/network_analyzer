@@ -58,7 +58,7 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
             }
         }
         putchar('\n');
-        for(int i = 0; i < tab_count; i++)
+        for(int j = 0; j < tab_count; j++)
         {
             putchar('\t');
         }

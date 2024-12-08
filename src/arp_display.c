@@ -6,7 +6,7 @@
 #include "arp_display.h"
 
 
-void display_protocol_addr(const uint8_t* addr, uint8_t len)
+static void display_protocol_addr(const uint8_t* addr, uint8_t len)
 {
     for(uint8_t i = 0; i < len-1; i++)
     {
