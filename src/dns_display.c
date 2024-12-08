@@ -17,38 +17,63 @@ struct dnshdr {
     uint16_t arcount;
 }  __attribute__((packed));
 
-bool print_len_str(const unsigned char* bytes, unsigned int *offset, bool display)
+enum PRINT_ERRORS {
+    PE_MORE_LEFT,
+    PE_NO_MORE,
+    PE_ERROR
+};
+
+enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display)
 {
     uint8_t len = bytes[*offset];
     (*offset)++;
+
+    if(bytes + *offset + len > end_stream)
+    {
+        return PE_ERROR;
+    }
     if(len == 0)
     {
-        return false;
+        return PE_NO_MORE;
     }
     if(len < 64)
     {
         if(display)
             fwrite(bytes + *offset, sizeof(char), len, stdout);
         *offset += len;
-        return bytes[*offset] != 0;
+        return bytes[*offset] == 0 ? PE_NO_MORE : PE_MORE_LEFT;
     }
     unsigned int ptr = (unsigned int)(((uint16_t)(len & 0b00111111) << 8) | (uint16_t)bytes[*offset]);
-    while(print_len_str(bytes, &ptr, display))
+    if(bytes + ptr >= end_stream)
+    {
+        return PE_ERROR;
+    }
+    enum PRINT_ERRORS r;
+    while((r = print_len_str(bytes, end_stream, &ptr, display)) == PE_MORE_LEFT)
     {
         if(display)
             putchar('.');
     }
-    return 0;
+    return r;
 }
 
-static void display_rr(const unsigned char* bytes, unsigned int* offset, int verbosity)
+static bool display_rr(const unsigned char* bytes, const unsigned char* end_stream, unsigned int* offset, int verbosity)
 {
+    enum PRINT_ERRORS r;
     if(verbosity > 2)
         printf("\t\tName: ");
-    while(print_len_str(bytes, offset, verbosity > 2))
+    while((r = print_len_str(bytes, end_stream, offset, verbosity > 2)) == PE_MORE_LEFT)
     {
         if(verbosity > 2)
             putchar('.');
+    }
+    if(r == PE_ERROR)
+    {
+        return false;
+    }
+    if(bytes + *offset + 11 > end_stream)
+    {
+        return false;
     }
     (*offset)++;
     if(verbosity > 2)
@@ -66,6 +91,10 @@ static void display_rr(const unsigned char* bytes, unsigned int* offset, int ver
     }
     uint16_t data_len = ntohs(*((uint16_t*)(bytes + *offset)));
     *offset += 2;
+    if(bytes + *offset + data_len > end_stream)
+    {
+        return false;
+    }
     if(verbosity > 2)
     {
         printf("\t\tData Length: %d\n", data_len);
@@ -74,10 +103,16 @@ static void display_rr(const unsigned char* bytes, unsigned int* offset, int ver
     }
 
     *offset += data_len;
+    return true;
 }
 
-const unsigned char* display_dns(const unsigned char* bytes, int verbosity)
+const unsigned char* display_dns(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
+    if(bytes + sizeof(struct dnshdr) > end_stream)
+    {
+        return NULL;
+    }
+
     const struct dnshdr* dns = (const struct dnshdr*) bytes;
     uint16_t flags = ntohs(dns->flags);
 
@@ -114,17 +149,26 @@ const unsigned char* display_dns(const unsigned char* bytes, int verbosity)
     unsigned int offset = sizeof(struct dnshdr);
     for(uint16_t qc = 0; qc < ntohs(dns->qdcount); qc++)
     {
+        enum PRINT_ERRORS r;
         if(verbosity > 2)
         {
             printf("\tQuestion %d:\n", qc+1);
             printf("\t\tName: ");
         }
-        while(print_len_str(bytes, &offset, verbosity > 1))
+        while((r = print_len_str(bytes, end_stream, &offset, verbosity > 1)) == PE_MORE_LEFT)
         {
             if(verbosity > 1)
             {
                 putchar('.');
             }
+        }
+        if(r == PE_ERROR)
+        {
+            return NULL;
+        }
+        if(bytes + offset + 5 > end_stream)
+        {
+            return NULL;
         }
         offset++;
         if(verbosity > 1)
@@ -147,19 +191,28 @@ const unsigned char* display_dns(const unsigned char* bytes, int verbosity)
     {
         if(verbosity > 2)
             printf("\tAnswer %d:\n", ac+1);
-        display_rr(bytes, &offset, verbosity);
+        if(!display_rr(bytes, end_stream, &offset, verbosity))
+        {
+            return NULL;
+        }
     }
     for(uint16_t nc = 0; nc < ntohs(dns->nscount); nc++)
     {
         if(verbosity > 2)
             printf("\tAuthority %d:\n", nc+1);
-        display_rr(bytes, &offset, verbosity);
+        if(!display_rr(bytes, end_stream, &offset, verbosity))
+        {
+            return NULL;
+        }
     }
     for(uint16_t ac = 0; ac < ntohs(dns->arcount); ac++)
     {
         if(verbosity > 2)
             printf("\tAdditional %d:\n", ac+1);
-        display_rr(bytes, &offset, verbosity);
+        if(!display_rr(bytes, end_stream, &offset, verbosity))
+        {
+            return NULL;
+        }
     }
 
     if(verbosity == 2)
@@ -167,6 +220,10 @@ const unsigned char* display_dns(const unsigned char* bytes, int verbosity)
         putchar('\n');
     }
 
+    if(bytes + offset > end_stream)
+    {
+        return NULL;
+    }
 
     return bytes + offset;
 }

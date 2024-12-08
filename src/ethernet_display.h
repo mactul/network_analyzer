@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-const unsigned char* display_ethernet_frame(const unsigned char* bytes, uint16_t* ether_type, int verbosity);
+const unsigned char* display_ethernet_frame(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* ether_type, int verbosity);
 
 #endif

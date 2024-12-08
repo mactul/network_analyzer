@@ -6,10 +6,21 @@
 
 #include "ip_display.h"
 
-static const unsigned char* display_ipv4(const unsigned char* bytes, uint8_t* protocol, int verbosity)
+static const unsigned char* display_ipv4(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
 {
-    char buffer[INET_ADDRSTRLEN];
+    if(bytes + sizeof(struct iphdr) > end_stream)
+    {
+        return NULL;
+    }
+
     const struct iphdr* ip = (const struct iphdr*)bytes;
+
+    if(bytes + 4 * ip->ihl > end_stream)
+    {
+        return NULL;
+    }
+
+    char buffer[INET_ADDRSTRLEN];
     uint16_t frag_off = ntohs(ip->frag_off);
     uint8_t flags = (uint8_t)(frag_off >> 13);
 
@@ -60,8 +71,13 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, uint8_t* pr
     return bytes + 4 * ip->ihl;
 }
 
-static const unsigned char* display_ipv6(const unsigned char* bytes, uint8_t* protocol, int verbosity)
+static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
 {
+    if(bytes + sizeof(struct ip6_hdr) > end_stream)
+    {
+        return NULL;
+    }
+
     char buffer[INET6_ADDRSTRLEN];
     const struct ip6_hdr* ip = (const struct ip6_hdr*)bytes;
     uint32_t version_tc_fl = ntohl(ip->ip6_ctlun.ip6_un1.ip6_un1_flow);
@@ -96,12 +112,16 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, uint8_t* pr
     return bytes + sizeof(struct ip6_hdr);
 }
 
-const unsigned char* display_ip(const unsigned char* bytes, uint8_t* protocol, int verbosity)
+const unsigned char* display_ip(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
 {
+    if(bytes + 1 > end_stream)
+    {
+        return NULL;
+    }
     const struct iphdr* ip = (const struct iphdr*)bytes;
     if(ip->version == 4)
     {
-        return display_ipv4(bytes, protocol, verbosity);
+        return display_ipv4(bytes, end_stream, protocol, verbosity);
     }
-    return display_ipv6(bytes, protocol, verbosity);
+    return display_ipv6(bytes, end_stream, protocol, verbosity);
 }

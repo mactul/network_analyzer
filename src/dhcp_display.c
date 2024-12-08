@@ -26,8 +26,13 @@ struct bootp {
 } __attribute__((packed));
 
 
-const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity)
+const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
+    if(bytes + sizeof(struct bootp) > end_stream)
+    {
+        return NULL;
+    }
+
     bool dhcp = false;
     char buffer[INET_ADDRSTRLEN];
     const struct bootp* bootp = (const struct bootp*)bytes;

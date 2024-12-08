@@ -16,9 +16,19 @@ void display_protocol_addr(const uint8_t* addr, uint8_t len)
 }
 
 
-const unsigned char* display_arp(const unsigned char* bytes, int verbosity)
+const unsigned char* display_arp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
+    if(bytes + sizeof(struct arphdr) > end_stream)
+    {
+        return NULL;
+    }
+
     const struct arphdr* arp = (const struct arphdr*)bytes;
+
+    if(bytes + sizeof(struct arphdr) + 2 * arp->ar_hln + 2 * arp->ar_pln > end_stream)
+    {
+        return NULL;
+    }
 
     printf("ARP");
     if(verbosity <= 1)

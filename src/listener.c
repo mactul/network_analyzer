@@ -48,7 +48,12 @@ void select_interface(char* buffer, unsigned int buffer_size)
             current_interface = current_interface->next;
         }
         printf("Select an interface (1-%d): ", counter);
-        fgets(str, MAX_INT_STR_SIZE, stdin);
+        if(fgets(str, MAX_INT_STR_SIZE, stdin) == NULL)
+        {
+            putchar('\n');
+            fprintf(stderr, "End of file on stdin and the interface wasn't specified\n");
+            exit(EXIT_FAILURE);
+        }
         answer = atoi(str);
         if(answer > counter)
         {
@@ -74,53 +79,95 @@ void select_interface(char* buffer, unsigned int buffer_size)
 
 void callback(u_char* user, const struct pcap_pkthdr* header, const unsigned char* bytes)
 {
-    uint16_t ether_type;
+    uint16_t ether_type = 0x0000;
     uint8_t protocol = 0xFF;
     uint16_t dest_port = 0;
     uint16_t src_port = 0;
-    const unsigned char* left_bytes = bytes;
     int verbosity = (int)((size_t)user);
-    left_bytes = display_ethernet_frame(left_bytes, &ether_type, verbosity);
+    const unsigned char* left_bytes = bytes;
+    const unsigned char* end_stream = bytes + header->caplen;
+
+    if((left_bytes = display_ethernet_frame(left_bytes, end_stream, &ether_type, verbosity)) == NULL)
+    {
+        fprintf(stderr, "Malformed Ethernet header\n\n");
+        return;
+    }
 
     if(ether_type == ETHERTYPE_ARP)
     {
-        left_bytes = display_arp(left_bytes, verbosity);
+        if((left_bytes = display_arp(left_bytes, end_stream, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed ARP header\n\n");
+            return;
+        }
     }
     else if(ether_type == ETHERTYPE_IP || ether_type == ETHERTYPE_IPV6)
     {
-        left_bytes = display_ip(left_bytes, &protocol, verbosity);
+        if((left_bytes = display_ip(left_bytes, end_stream, &protocol, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed IP header\n\n");
+            return;
+        }
     }
 
     if(protocol == 0x01)
     {
-        left_bytes = display_icmp(left_bytes, verbosity);
+        if((left_bytes = display_icmp(left_bytes, end_stream, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed ICMP header\n\n");
+            return;
+        }
     }
     else if(protocol == 0x3A)
     {
-        left_bytes = display_icmp(left_bytes, verbosity);
+        if((left_bytes = display_icmp(left_bytes, end_stream, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed ICMPv6 header\n\n");
+            return;
+        }
     }
     else if(protocol == 0x11)
     {
-        left_bytes = display_udp(left_bytes, &dest_port, &src_port, verbosity);
+        if((left_bytes = display_udp(left_bytes, end_stream, &dest_port, &src_port, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed UDP header\n");
+            return;
+        }
     }
     else if(protocol == 0x06)
     {
-        left_bytes = display_tcp(left_bytes, &dest_port, &src_port, verbosity);
+        if((left_bytes = display_tcp(left_bytes, end_stream, &dest_port, &src_port, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed TCP header\n");
+            return;
+        }
     }
 
     if(dest_port == 67 || dest_port == 68 || src_port == 67 || src_port == 68)
     {
-        left_bytes = display_dhcp(left_bytes, verbosity);
+        if((left_bytes = display_dhcp(left_bytes, end_stream, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed BOOTP header\n");
+            return;
+        }
     }
     else if(dest_port == 53 || src_port == 53)
     {
-        left_bytes = display_dns(left_bytes, verbosity);
+        if((left_bytes = display_dns(left_bytes, end_stream, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed DNS header\n");
+            return;
+        }
     }
 
     if(verbosity > 2)
     {
-        printf("Data:\n");
-        display_generic_bytes(left_bytes, (int)header->caplen - (int)(left_bytes - bytes), 1);
+        int left = (int)(end_stream - left_bytes);
+        if(left > 0)
+        {
+            printf("Data:\n");
+            display_generic_bytes(left_bytes, left, 1);
+        }
     }
     putchar('\n');
 }
@@ -136,7 +183,11 @@ int run_pcap(int verbosity, char* interface_name, char* filter, char* offline_fi
 
     if(offline_filename != NULL)
     {
-       interface = pcap_open_offline(offline_filename, _errbuf);
+        if((interface = pcap_open_offline(offline_filename, _errbuf)) == NULL)
+        {
+            fprintf(stderr, "%s\n", _errbuf);
+            goto CLOSE;
+        }
     }
     else
     {

@@ -6,8 +6,13 @@
 
 #include "ip_display.h"
 
-const unsigned char* display_udp(const unsigned char* bytes, uint16_t* dest_port, uint16_t* src_port, int verbosity)
+const unsigned char* display_udp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
+    if(bytes + sizeof(struct udphdr) > end_stream)
+    {
+        return NULL;
+    }
+
     const struct udphdr* udp = (const struct udphdr*)bytes;
     *dest_port = ntohs(udp->uh_dport);
     *src_port = ntohs(udp->uh_sport);
@@ -34,9 +39,20 @@ const unsigned char* display_udp(const unsigned char* bytes, uint16_t* dest_port
     return bytes + sizeof(struct udphdr);
 }
 
-const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port, uint16_t* src_port, int verbosity)
+const unsigned char* display_tcp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
+    if(bytes + sizeof(struct tcphdr) > end_stream)
+    {
+        return NULL;
+    }
+
     const struct tcphdr* tcp = (const struct tcphdr*)bytes;
+
+    if(bytes + 4 * tcp->th_off > end_stream)
+    {
+        return NULL;
+    }
+
     *dest_port = ntohs(tcp->th_dport);
     *src_port = ntohs(tcp->th_sport);
 
@@ -70,8 +86,13 @@ const unsigned char* display_tcp(const unsigned char* bytes, uint16_t* dest_port
     return bytes + tcp->th_off * 4;
 }
 
-const unsigned char* display_icmp(const unsigned char* bytes, int verbosity)
+const unsigned char* display_icmp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
+    if(bytes + 4 > end_stream)
+    {
+        return NULL;
+    }
+
     const struct icmphdr* icmp = (const struct icmphdr*)bytes;
 
     printf("ICMP");

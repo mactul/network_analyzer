@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-const unsigned char* display_ip(const unsigned char* bytes, uint8_t* protocol, int verbosity);
+const unsigned char* display_ip(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity);
 
 #endif

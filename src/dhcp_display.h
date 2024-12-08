@@ -1,6 +1,6 @@
 #ifndef DHCP_DISPLAY_H
 #define DHCP_DISPLAY_H
 
-const unsigned char* display_dhcp(const unsigned char* bytes, int verbosity);
+const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity);
 
 #endif
