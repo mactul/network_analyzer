@@ -6,16 +6,16 @@
 
 #include "ip_display.h"
 
-static const unsigned char* display_ipv4(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
+static const unsigned char* display_ipv4(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
 {
-    if(bytes + sizeof(struct iphdr) > end_stream)
+    if(bytes + sizeof(struct iphdr) > *end_stream)
     {
         return NULL;
     }
 
     const struct iphdr* ip = (const struct iphdr*)bytes;
 
-    if(bytes + 4 * ip->ihl > end_stream)
+    if(bytes + 4 * ip->ihl > *end_stream)
     {
         return NULL;
     }
@@ -23,6 +23,13 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, const unsig
     char buffer[INET_ADDRSTRLEN];
     uint16_t frag_off = ntohs(ip->frag_off);
     uint8_t flags = (uint8_t)(frag_off >> 13);
+    uint16_t total_length = ntohs(ip->tot_len);
+
+    if(bytes + total_length > *end_stream)
+    {
+        return NULL;
+    }
+    *end_stream = bytes + total_length;
 
     *protocol = ip->protocol;
 
@@ -45,7 +52,7 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, const unsig
         printf("\tVersion: %d\n", ip->version);
         printf("\tHeader Length: %d (%d bytes)\n", ip->ihl, 4 * ip->ihl);
         printf("\tType of Service: 0x%02x\n", ip->tos);
-        printf("\tTotal Length: %d\n", ntohs(ip->tot_len));
+        printf("\tTotal Length: %d\n", total_length);
         printf("\tIdentification: 0x%04x\n", ntohs(ip->id));
         printf("\tFlags 0x%x (R=%d DF=%d MF=%d)\n", flags, (flags >> 2) & 0x1, (flags >> 1) & 0x1, flags & 0x1);
         printf("\tFragment Offset (without flags): %d\n", frag_off & ~(0x7 << 13));
@@ -71,9 +78,9 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, const unsig
     return bytes + 4 * ip->ihl;
 }
 
-static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
+static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
 {
-    if(bytes + sizeof(struct ip6_hdr) > end_stream)
+    if(bytes + sizeof(struct ip6_hdr) > *end_stream)
     {
         return NULL;
     }
@@ -81,6 +88,13 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, const unsig
     char buffer[INET6_ADDRSTRLEN];
     const struct ip6_hdr* ip = (const struct ip6_hdr*)bytes;
     uint32_t version_tc_fl = ntohl(ip->ip6_ctlun.ip6_un1.ip6_un1_flow);
+    uint16_t payload_length = ntohs(ip->ip6_ctlun.ip6_un1.ip6_un1_plen);
+
+    if(bytes + sizeof(struct ip6_hdr) + payload_length > *end_stream)
+    {
+        return NULL;
+    }
+    *end_stream = bytes + sizeof(struct ip6_hdr) + payload_length;
 
     *protocol =  ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
@@ -103,7 +117,7 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, const unsig
         printf("\tVersion: %u\n", version_tc_fl >> 28);
         printf("\tTraffic class: 0x%02x\n", (version_tc_fl >> 20) & 0xFF);
         printf("\tFlow Label: 0x%05x\n", version_tc_fl & 0xFFFFF);
-        printf("\tPayload Length: %u\n", ntohs(ip->ip6_ctlun.ip6_un1.ip6_un1_plen));
+        printf("\tPayload Length: %u\n", payload_length);
         printf("\tNext Header: %d\n", ip->ip6_ctlun.ip6_un1.ip6_un1_nxt);
         printf("\tHop Limit: %d\n", ip->ip6_ctlun.ip6_un1.ip6_un1_hlim);
         printf("\tSource address: %s\n", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
@@ -112,9 +126,9 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, const unsig
     return bytes + sizeof(struct ip6_hdr);
 }
 
-const unsigned char* display_ip(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
+const unsigned char* display_ip(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
 {
-    if(bytes + 1 > end_stream)
+    if(bytes + 1 > *end_stream)
     {
         return NULL;
     }

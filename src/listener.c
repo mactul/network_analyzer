@@ -105,7 +105,7 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
     }
     else if(ether_type == ETHERTYPE_IP || ether_type == ETHERTYPE_IPV6)
     {
-        if((left_bytes = display_ip(left_bytes, end_stream, &protocol, verbosity)) == NULL)
+        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity)) == NULL)
         {
             fprintf(stderr, "Malformed IP header\n\n");
             return;
@@ -141,6 +141,14 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
         if((left_bytes = display_tcp(left_bytes, end_stream, &dest_port, &src_port, verbosity)) == NULL)
         {
             fprintf(stderr, "Malformed TCP header\n");
+            return;
+        }
+    }
+    else if(protocol == 0x84)
+    {
+        if((left_bytes = display_sctp(left_bytes, end_stream, &dest_port, &src_port, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed SCTP header\n");
             return;
         }
     }
