@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 
 #include "dhcp_display.h"
-#include "common.h"
+#include "lib/common.h"
 
 struct bootp {
     uint8_t code_op;

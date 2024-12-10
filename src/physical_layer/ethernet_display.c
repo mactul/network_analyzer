@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-#include "common.h"
+#include "lib/common.h"
 #include "ethernet_display.h"
 
 

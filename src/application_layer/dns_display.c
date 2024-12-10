@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "common.h"
+#include "lib/common.h"
 #include "dns_display.h"
 
 struct dnshdr {

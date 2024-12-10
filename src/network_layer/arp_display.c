@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 #include <net/if_arp.h>
 
-#include "common.h"
+#include "lib/common.h"
 #include "arp_display.h"
 
 
