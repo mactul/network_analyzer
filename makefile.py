@@ -6,6 +6,7 @@ def on_build(config: powermake.Config):
 
     if not config.debug:
         config.add_c_flags("-flto")
+        config.add_ld_flags("-flto")
 
     config.add_c_flags("-fsecurity")
     config.add_ld_flags("-fsecurity")
