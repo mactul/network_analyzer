@@ -86,6 +86,8 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
     uint16_t dest_port = 0;
     uint16_t src_port = 0;
     int verbosity = (int)((size_t)user);
+    int align_offset = 0;
+    const unsigned char* sctp_reentrant = NULL;
     const unsigned char* left_bytes = bytes;
     const unsigned char* end_stream = bytes + header->caplen;
 
@@ -146,7 +148,8 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
     }
     else if(protocol == 0x84)
     {
-        if((left_bytes = display_sctp(left_bytes, end_stream, &dest_port, &src_port, verbosity)) == NULL)
+SCTP:  // This ugly label is used when a sctp segment contains multiple data chunks, in this case we have no other choices than to come back here.
+        if((left_bytes = display_sctp(left_bytes, &end_stream, &dest_port, &src_port, verbosity, &sctp_reentrant, &align_offset)) == NULL)
         {
             fprintf(stderr, "Malformed SCTP header\n");
             return;
@@ -212,6 +215,11 @@ static void callback(u_char* user, const struct pcap_pkthdr* header, const unsig
         }
     }
     putchar('\n');
+    if(sctp_reentrant)
+    {
+        printf("SCTP (continuation of previous SCTP segment):\n");
+        goto SCTP;
+    }
 }
 
 int run_pcap(int verbosity, char* interface_name, char* filter, char* offline_filename)

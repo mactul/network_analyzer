@@ -37,6 +37,13 @@ struct sctp_data_hdr {
     uint32_t payload_protocol_id;
 };
 
+struct sctp_sack_hdr {
+    uint32_t cumulative_tsn_ack;
+    uint32_t a_rwnd;
+    uint16_t gap_ack_blocks_nb;
+    uint16_t duplicate_tsn_nb;
+};
+
 enum SCTP_TYPES {
     SCTP_DATA = 0,
     SCTP_INIT = 1,
@@ -138,9 +145,17 @@ const unsigned char* display_tcp(const unsigned char* bytes, const unsigned char
 }
 
 
-const unsigned char* display_sctp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
+const unsigned char* display_sctp(const unsigned char* bytes, const unsigned char** end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity, const unsigned char** reentrant, int* align_offset)
 {
-    if(bytes + sizeof(struct sctphdr) + sizeof(struct sctp_chunk_hdr) > end_stream)
+    static int chunk_count = 0;
+    if(*reentrant)
+    {
+        bytes = *end_stream + *align_offset;
+        *end_stream = *reentrant;
+        *reentrant = NULL;
+        goto READ_CHUNKS;
+    }
+    if(bytes + sizeof(struct sctphdr) + sizeof(struct sctp_chunk_hdr) > *end_stream)
     {
         return NULL;
     }
@@ -172,17 +187,23 @@ const unsigned char* display_sctp(const unsigned char* bytes, const unsigned cha
 
     bytes += sizeof(struct sctphdr);
 
-    uint16_t data_length = 0;
-    int chunk_count = 0;
-    while(bytes + data_length < end_stream)
+    chunk_count = 0;
+READ_CHUNKS:
+    *align_offset = 0;
+    while(bytes < *end_stream)
     {
+        if(bytes + sizeof(struct sctp_chunk_hdr) > *end_stream)
+        {
+            return NULL;
+        }
         const struct sctp_chunk_hdr* chunk = (const struct sctp_chunk_hdr*)bytes;
-        uint16_t rounded_chunk_length = (uint16_t)NEXT_MULTIPLE(ntohs(chunk->length), 4);
+        uint16_t chunk_length = ntohs(chunk->length);
+        uint16_t rounded_chunk_length = (uint16_t)NEXT_MULTIPLE(chunk_length, 4);
         if(rounded_chunk_length == 0)
         {
             return NULL;
         }
-        if(bytes + rounded_chunk_length > end_stream)
+        if(bytes + rounded_chunk_length > *end_stream)
         {
             return NULL;
         }
@@ -218,8 +239,19 @@ const unsigned char* display_sctp(const unsigned char* bytes, const unsigned cha
                     printf("\t\tPayload Protocol Identifier: big_endian: 0x%08x untouched: 0x%08x\n", ntohl(sctp_data->payload_protocol_id), sctp_data->payload_protocol_id);
                 }
                 bytes += sizeof(struct sctp_data_hdr) + sizeof(struct sctp_chunk_hdr);
-                data_length = rounded_chunk_length - (uint16_t)sizeof(struct sctp_data_hdr) - (uint16_t)sizeof(struct sctp_chunk_hdr);
-                break;
+                uint16_t data_length = rounded_chunk_length - (uint16_t)sizeof(struct sctp_data_hdr) - (uint16_t)sizeof(struct sctp_chunk_hdr);
+                if(*end_stream < bytes + data_length)
+                {
+                    return NULL;
+                }
+                if(*end_stream > bytes + data_length)
+                {
+                    // There is some data left, maybe their is multiple data chunk, we need to treat this packet then re-enter into this function.
+                    *reentrant = *end_stream;
+                }
+                *end_stream = bytes + chunk_length - (uint16_t)sizeof(struct sctp_data_hdr) - (uint16_t)sizeof(struct sctp_chunk_hdr);
+                *align_offset = rounded_chunk_length - chunk_length;
+                return bytes;
 
             case SCTP_INIT:
             case SCTP_INIT_ACK:
@@ -244,6 +276,30 @@ const unsigned char* display_sctp(const unsigned char* bytes, const unsigned cha
                 bytes += rounded_chunk_length;
                 break;
 
+            case SCTP_SACK:
+                if(rounded_chunk_length < sizeof(struct sctp_sack_hdr) + sizeof(struct sctp_chunk_hdr))
+                {
+                    return NULL;
+                }
+                {
+                    const struct sctp_sack_hdr* sctp_sack = (const struct sctp_sack_hdr*)(bytes + sizeof(struct sctp_chunk_hdr));
+                    uint16_t gap_ack_blocks_nb = ntohs(sctp_sack->gap_ack_blocks_nb);
+                    uint16_t duplicate_tsn_nb = ntohs(sctp_sack->duplicate_tsn_nb);
+                    if(rounded_chunk_length < sizeof(struct sctp_sack_hdr) + sizeof(struct sctp_chunk_hdr) + sizeof(uint32_t) * (gap_ack_blocks_nb + duplicate_tsn_nb))
+                    {
+                        return NULL;
+                    }
+                    if(verbosity > 2)
+                    {
+                        printf("\t\tCumulative TSN Ack: 0x%08x\n", ntohl(sctp_sack->cumulative_tsn_ack));
+                        printf("\t\tAdvertised Receiver Window Credit: %u\n", ntohl(sctp_sack->a_rwnd));
+                        printf("\t\tNumber of Gap Ack Blocks: %d\n", gap_ack_blocks_nb);
+                        printf("\t\tNumber of Duplicate TSNs: %d\n", duplicate_tsn_nb);
+                    }
+                }
+                bytes += rounded_chunk_length;
+                break;
+
             default:
                 if(verbosity > 2)
                 {
@@ -253,7 +309,7 @@ const unsigned char* display_sctp(const unsigned char* bytes, const unsigned cha
         }
     }
 
-    if(bytes + data_length != end_stream)
+    if(bytes != *end_stream)
     {
         return NULL;
     }
