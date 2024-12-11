@@ -1,4 +1,3 @@
-#include <bits/endian.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <arpa/inet.h>

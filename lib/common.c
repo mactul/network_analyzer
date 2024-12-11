@@ -26,6 +26,16 @@ void display_byte(unsigned char byte)
     }
 }
 
+void display_string(const unsigned char* str, int max_len)
+{
+    while(max_len > 0 && *str)
+    {
+        display_byte(*str);
+        str++;
+        max_len--;
+    }
+}
+
 void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
 {
     struct winsize w;

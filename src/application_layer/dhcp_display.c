@@ -20,8 +20,8 @@ struct bootp {
     uint32_t siaddr;
     uint32_t giaddr;
     uint8_t chaddr[16];
-    char sname[64];
-    char file[128];
+    unsigned char sname[64];
+    unsigned char file[128];
     uint8_t vendor_specific[64];
 } __attribute__((packed));
 
@@ -84,10 +84,12 @@ const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned cha
             display_hardware_addr(bootp->chaddr, bootp->hardware_addr_len);
         }
 
-        printf("\n\tServer name: %.64s\n", bootp->sname);
-        printf("\tFile Name: %.127s\n", bootp->file);
+        printf("\n\tServer name: ");
+        display_string(bootp->sname, 63);
+        printf("\n\tFile Name: ");
+        display_string(bootp->file, 127);
 
-        printf("\tVendor specific:\n");
+        printf("\n\tVendor specific:\n");
         display_generic_bytes(bootp->vendor_specific, 64, 2);
     }
 
