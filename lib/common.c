@@ -14,6 +14,18 @@ void display_hardware_addr(const uint8_t* addr, uint8_t len)
 }
 
 
+void display_byte(unsigned char byte)
+{
+    if(byte >= ' ' && byte <= '~')
+    {
+        putchar(byte);
+    }
+    else
+    {
+        printf("\U000000B7");
+    }
+}
+
 void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
 {
     struct winsize w;
@@ -48,14 +60,7 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
 
         for(int j = 0; j < max_hex; j++)
         {
-            if(bytes[i+j] >= ' ' && bytes[i+j] <= '~')
-            {
-                putchar(bytes[i+j]);
-            }
-            else
-            {
-                printf("\U000000B7");
-            }
+            display_byte(bytes[i+j]);
         }
         putchar('\n');
         for(int j = 0; j < tab_count; j++)
@@ -85,14 +90,7 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
     }
     for(int i = (len / max_hex) * max_hex; i < len; i++)
     {
-        if(bytes[i] >= ' ' && bytes[i] <= '~')
-        {
-            putchar(bytes[i]);
-        }
-        else
-        {
-            printf("\U000000B7");
-        }
+        display_byte(bytes[i]);
     }
 
     putchar('\n');

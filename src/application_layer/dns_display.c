@@ -23,8 +23,14 @@ enum PRINT_ERRORS {
     PE_ERROR
 };
 
-static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display)
+static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display, int stack_recursion_left)
 {
+    if(stack_recursion_left <= 0)
+    {
+        return PE_ERROR;
+    }
+    stack_recursion_left--;
+
     uint8_t len = bytes[*offset];
     (*offset)++;
 
@@ -39,7 +45,12 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
     if(len < 64)
     {
         if(display)
-            fwrite(bytes + *offset, sizeof(char), len, stdout);
+        {
+            for(int i = 0; i < len; i++)
+            {
+                display_byte((bytes + *offset)[i]);
+            }
+        }
         *offset += len;
         return bytes[*offset] == 0 ? PE_NO_MORE : PE_MORE_LEFT;
     }
@@ -49,7 +60,7 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
         return PE_ERROR;
     }
     enum PRINT_ERRORS r;
-    while((r = print_len_str(bytes, end_stream, &ptr, display)) == PE_MORE_LEFT)
+    while((r = print_len_str(bytes, end_stream, &ptr, display, stack_recursion_left)) == PE_MORE_LEFT)
     {
         if(display)
             putchar('.');
@@ -62,10 +73,14 @@ static bool display_rr(const unsigned char* bytes, const unsigned char* end_stre
     enum PRINT_ERRORS r;
     if(verbosity > 2)
         printf("\t\tName: ");
-    while((r = print_len_str(bytes, end_stream, offset, verbosity > 2)) == PE_MORE_LEFT)
+    while((r = print_len_str(bytes, end_stream, offset, verbosity > 2, 255)) == PE_MORE_LEFT)
     {
         if(verbosity > 2)
             putchar('.');
+    }
+    if(verbosity > 2)
+    {
+        putchar('\n');
     }
     if(r == PE_ERROR)
     {
@@ -78,7 +93,7 @@ static bool display_rr(const unsigned char* bytes, const unsigned char* end_stre
     (*offset)++;
     if(verbosity > 2)
     {
-        printf("\n\t\tType: %d\n", ntohs(*((uint16_t*)(bytes + *offset))));
+        printf("\t\tType: %d\n", ntohs(*((uint16_t*)(bytes + *offset))));
         *offset += 2;
         printf("\t\tClass: %d\n", ntohs(*((uint16_t*)(bytes + *offset))));
         *offset += 2;
@@ -155,12 +170,20 @@ const unsigned char* display_dns(const unsigned char* bytes, const unsigned char
             printf("\tQuestion %d:\n", qc+1);
             printf("\t\tName: ");
         }
-        while((r = print_len_str(bytes, end_stream, &offset, verbosity > 1)) == PE_MORE_LEFT)
+        while((r = print_len_str(bytes, end_stream, &offset, verbosity > 1, 255)) == PE_MORE_LEFT)
         {
             if(verbosity > 1)
             {
                 putchar('.');
             }
+        }
+        if(verbosity > 1)
+        {
+            putchar(' ');
+        }
+        if(verbosity > 2)
+        {
+            putchar('\n');
         }
         if(r == PE_ERROR)
         {
@@ -171,13 +194,9 @@ const unsigned char* display_dns(const unsigned char* bytes, const unsigned char
             return NULL;
         }
         offset++;
-        if(verbosity > 1)
-        {
-            putchar(' ');
-        }
         if(verbosity > 2)
         {
-            printf("\n\t\tType: %d\n", ntohs(*((uint16_t*)(bytes + offset))));
+            printf("\t\tType: %d\n", ntohs(*((uint16_t*)(bytes + offset))));
             offset += 2;
             printf("\t\tClass: %d\n", ntohs(*((uint16_t*)(bytes + offset))));
             offset += 2;
