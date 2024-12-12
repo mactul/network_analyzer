@@ -8,9 +8,9 @@ void display_hardware_addr(const uint8_t* addr, uint8_t len)
 {
     for(uint8_t i = 0; i < len-1; i++)
     {
-        printf("%x:", addr[i]);
+        printf("%02x:", addr[i]);
     }
-    printf("%x", addr[len-1]);
+    printf("%02x", addr[len-1]);
 }
 
 

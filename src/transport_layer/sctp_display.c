@@ -60,15 +60,46 @@ enum SCTP_TYPES {
 };
 
 enum SCTP_TLV_TYPES {
+    SCTP_TLV_HEARTBEAT_INFO = 1,
     SCTP_TLV_IPV4_ADDRESS = 5,
     SCTP_TLV_IPV6_ADDRESS = 6,
     SCTP_TLV_STATE_COOKIE = 7,
+    SCTP_TLV_COOKIE_PRESERVATIVE = 9,
+    SCTP_TLV_HOSTNAME_ADDRESS = 11,
+    SCTP_TLV_SUPPORTED_ADDR_TYPES = 12,
 };
 
 const char* sctp_types_lookup[] = {"DATA", "INIT", "INIT ACK", "SACK", "HEARTBEAT", "HEARTBEAT ACK", "ABORT", "SHUTDOWN", "SHUTDOWN ACK", "OPERATION ERROR", "COOKIE ECHO", "COOKIE ACK", "ECNE", "CWR", "SHUTDOWN COMPLETE"};
 
+static void display_sctp_tlv_type(uint16_t type)
+{
+    switch(type)
+    {
+        case SCTP_TLV_HEARTBEAT_INFO:
+            printf(" (Heartbeat Info)");
+            break;
+        case SCTP_TLV_STATE_COOKIE:
+            printf(" (State Cookie)");
+            break;
+        case SCTP_TLV_IPV4_ADDRESS:
+            printf(" (IPv4 Address)");
+            break;
+        case SCTP_TLV_IPV6_ADDRESS:
+            printf(" (IPv6 Address)");
+            break;
+        case SCTP_TLV_COOKIE_PRESERVATIVE:
+            printf(" (Cookie Preservative)");
+            break;
+        case SCTP_TLV_HOSTNAME_ADDRESS:
+            printf(" (Hostname Address)");
+            break;
+        case SCTP_TLV_SUPPORTED_ADDR_TYPES:
+            printf(" (Supported Address Types)");
+            break;
+    }
+}
 
-bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stream)
+static bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stream)
 {
     while(bytes < end_stream)
     {
@@ -85,6 +116,10 @@ bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stre
         {
             return false;
         }
+        printf("\t\t\tType: %d", type);
+        display_sctp_tlv_type(type);
+        printf("\n\t\t\tLength: %d\n", length);
+
         length -= 2 * (uint16_t)sizeof(uint16_t);
         uint16_t rounded_length = (uint16_t)NEXT_MULTIPLE(length, 4);
 
@@ -92,20 +127,7 @@ bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stre
         {
             return false;
         }
-        printf("\t\t\tType: %d", type);
-        switch(type)
-        {
-            case SCTP_TLV_STATE_COOKIE:
-                printf(" (State Cookie)");
-                break;
-            case SCTP_TLV_IPV4_ADDRESS:
-                printf(" (IPv4 Address)");
-                break;
-            case SCTP_TLV_IPV6_ADDRESS:
-                printf(" (IPv6 Address)");
-                break;
-        }
-        printf("\n\t\t\tLength: %d\n", length);
+
         printf("\t\t\tValue:");
         switch(type)
         {
@@ -114,13 +136,36 @@ bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stre
             case SCTP_TLV_IPV4_ADDRESS:
                 if(length != 4)
                     return false;
-                printf(" %s\n", inet_ntop(AF_INET, bytes, buffer, INET_ADDRSTRLEN));
+                printf(" %s\n\n", inet_ntop(AF_INET, bytes, buffer, INET_ADDRSTRLEN));
                 break;
 
             case SCTP_TLV_IPV6_ADDRESS:
                 if(length != 16)
                     return false;
-                printf(" %s\n", inet_ntop(AF_INET6, bytes, buffer, INET6_ADDRSTRLEN));
+                printf(" %s\n\n", inet_ntop(AF_INET6, bytes, buffer, INET6_ADDRSTRLEN));
+                break;
+
+            case SCTP_TLV_COOKIE_PRESERVATIVE:
+                if(length != sizeof(uint32_t))
+                    return false;
+                printf(" %u ms\n\n", ntohl(*((uint32_t*)bytes)));
+                break;
+
+            case SCTP_TLV_HOSTNAME_ADDRESS:
+                putchar(' ');
+                display_string(bytes, length);
+                printf("\n\n");
+                break;
+
+            case SCTP_TLV_SUPPORTED_ADDR_TYPES:
+                putchar('\n');
+                for(int i = 0; i < length; i += 2)
+                {
+                    uint16_t addr_type = ntohs(*((uint16_t*)(bytes+i)));
+                    printf("\t\t\t\t%d", addr_type);
+                    display_sctp_tlv_type(addr_type);
+                    putchar('\n');
+                }
                 break;
 
             default:

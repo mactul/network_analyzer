@@ -34,7 +34,7 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
     uint8_t len = bytes[*offset];
     (*offset)++;
 
-    if(bytes + *offset + len > end_stream)
+    if(bytes + *offset > end_stream)
     {
         return PE_ERROR;
     }
@@ -44,6 +44,10 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
     }
     if(len < 64)
     {
+        if(bytes + *offset + len > end_stream)
+        {
+            return PE_ERROR;
+        }
         if(display)
         {
             for(int i = 0; i < len; i++)

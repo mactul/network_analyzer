@@ -1,5 +1,7 @@
 .vscode
 build
 pcap_files
+pcap_files_fuzzed
+afl_fuzz_findings
 clean_pcap_files.sh
 fuzzed.cap
