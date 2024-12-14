@@ -78,7 +78,7 @@ static const unsigned char* display_next_ipv6_header(const unsigned char* bytes,
                     // This can't happen unless the code is modified by mistake.
                     abort();
             }
-            display_generic_bytes(bytes + sizeof(struct ip6_hdr), 8 * (1 + (int)ext->ip6e_len), 2);
+            display_generic_bytes(bytes + sizeof(struct ip6_hdr), 8 * (1 + (int)ext->ip6e_len) - (int)sizeof(struct ip6_hdr), 2);
         }
         *protocol = ext->ip6e_nxt;
         bytes += 8 * (1 + ext->ip6e_len);
