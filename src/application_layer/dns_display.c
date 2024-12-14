@@ -31,13 +31,14 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
     }
     stack_recursion_left--;
 
-    uint8_t len = bytes[*offset];
-    (*offset)++;
-
-    if(bytes + *offset > end_stream)
+    if(bytes + *offset >= end_stream)
     {
         return PE_ERROR;
     }
+
+    uint8_t len = bytes[*offset];
+    (*offset)++;
+
     if(len == 0)
     {
         return PE_NO_MORE;
