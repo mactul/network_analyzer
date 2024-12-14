@@ -1,9 +1,142 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <stdio.h>
 
+#include "lib/common.h"
 #include "ip_display.h"
+
+enum IPV6_NEXT_HEADERS {
+    HOP_BY_HOP = 0,
+    ROUTING = 43,
+    FRAGMENT = 44,
+    ENCAPSULATING_SECURITY_PROTOCOL = 50,
+    AUTHENTIFICATION_HEADER = 51,
+    DESTINATION_OPTIONS = 60,
+    MOBILITY = 135,
+    HOST_IDENTITY_PROTOCOL = 139,
+    SHIM6 = 140,
+};
+
+
+static const unsigned char* display_next_ipv6_header(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity)
+{
+    while(bytes != NULL && (
+        *protocol    == HOP_BY_HOP
+        || *protocol == ROUTING
+        || *protocol == FRAGMENT
+        || *protocol == ENCAPSULATING_SECURITY_PROTOCOL
+        || *protocol == AUTHENTIFICATION_HEADER
+        || *protocol == DESTINATION_OPTIONS
+        || *protocol == MOBILITY
+        || *protocol == HOST_IDENTITY_PROTOCOL
+        || *protocol == SHIM6))
+    {
+        if(bytes + 8 > end_stream)
+        {
+            return NULL;
+        }
+        const struct ip6_ext* ext = (const struct ip6_ext*)bytes;
+        if(bytes + 8 * (1 + (uint32_t)ext->ip6e_len) > end_stream)
+        {
+            return NULL;
+        }
+        if(verbosity > 2)
+        {
+            printf("\tExtension ");
+            switch((enum IPV6_NEXT_HEADERS)*protocol)
+            {
+                case HOP_BY_HOP:
+                    printf("Hop By Hop:\n");
+                    break;
+                case ROUTING:
+                    printf("Routing:\n");
+                    break;
+                case FRAGMENT:
+                    printf("Fragment:\n");
+                    break;
+                case ENCAPSULATING_SECURITY_PROTOCOL:
+                    printf("Encapsulating Security Protocol:\n");
+                    break;
+                case AUTHENTIFICATION_HEADER:
+                    printf("Authentification Header:\n");
+                    break;
+                case DESTINATION_OPTIONS:
+                    printf("Destination Options:\n");
+                    break;
+                case MOBILITY:
+                    printf("Mobility:\n");
+                    break;
+                case HOST_IDENTITY_PROTOCOL:
+                    printf("Host Identity Protocol:\n");
+                    break;
+                case SHIM6:
+                    printf("SHIM6:\n");
+                    break;
+                default:
+                    // This can't happen unless the code is modified by mistake.
+                    abort();
+            }
+            display_generic_bytes(bytes + sizeof(struct ip6_hdr), 8 * (1 + (int)ext->ip6e_len), 2);
+        }
+        *protocol = ext->ip6e_nxt;
+        bytes += 8 * (1 + ext->ip6e_len);
+    }
+    return bytes;
+}
+
+
+static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
+{
+    if(bytes + sizeof(struct ip6_hdr) > *end_stream)
+    {
+        return NULL;
+    }
+
+    char buffer[INET6_ADDRSTRLEN];
+    const struct ip6_hdr* ip = (const struct ip6_hdr*)bytes;
+    uint32_t version_tc_fl = ntohl(ip->ip6_ctlun.ip6_un1.ip6_un1_flow);
+    uint16_t payload_length = ntohs(ip->ip6_ctlun.ip6_un1.ip6_un1_plen);
+
+    if(bytes + sizeof(struct ip6_hdr) + payload_length > *end_stream)
+    {
+        return NULL;
+    }
+    *end_stream = bytes + sizeof(struct ip6_hdr) + payload_length;
+
+    *protocol =  ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+
+    if(verbosity <= 2)
+    {
+        printf("IP: %s -> ", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
+        printf("%s", inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
+        if(verbosity <= 1)
+        {
+            printf("    ");
+        }
+        else
+        {
+            putchar('\n');
+        }
+    }
+    else
+    {
+        printf("IP:\n");
+        printf("\tVersion: %u\n", version_tc_fl >> 28);
+        printf("\tTraffic class: 0x%02x\n", (version_tc_fl >> 20) & 0xFF);
+        printf("\tFlow Label: 0x%05x\n", version_tc_fl & 0xFFFFF);
+        printf("\tPayload Length: %u\n", payload_length);
+        printf("\tNext Header: %d\n", *protocol);
+        printf("\tHop Limit: %d\n", ip->ip6_ctlun.ip6_un1.ip6_un1_hlim);
+        printf("\tSource address: %s\n", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
+        printf("\tDestination address: %s\n", inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
+    }
+    bytes += sizeof(struct ip6_hdr);
+
+    return display_next_ipv6_header(bytes, *end_stream, protocol, verbosity);
+}
+
 
 static const unsigned char* display_ipv4(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
 {
@@ -75,54 +208,6 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, const unsig
         }
     }
     return bytes + 4 * ip->ihl;
-}
-
-static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)
-{
-    if(bytes + sizeof(struct ip6_hdr) > *end_stream)
-    {
-        return NULL;
-    }
-
-    char buffer[INET6_ADDRSTRLEN];
-    const struct ip6_hdr* ip = (const struct ip6_hdr*)bytes;
-    uint32_t version_tc_fl = ntohl(ip->ip6_ctlun.ip6_un1.ip6_un1_flow);
-    uint16_t payload_length = ntohs(ip->ip6_ctlun.ip6_un1.ip6_un1_plen);
-
-    if(bytes + sizeof(struct ip6_hdr) + payload_length > *end_stream)
-    {
-        return NULL;
-    }
-    *end_stream = bytes + sizeof(struct ip6_hdr) + payload_length;
-
-    *protocol =  ip->ip6_ctlun.ip6_un1.ip6_un1_nxt;
-
-    if(verbosity <= 2)
-    {
-        printf("IP: %s -> ", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
-        printf("%s", inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
-        if(verbosity <= 1)
-        {
-            printf("    ");
-        }
-        else
-        {
-            putchar('\n');
-        }
-    }
-    else
-    {
-        printf("IP:\n");
-        printf("\tVersion: %u\n", version_tc_fl >> 28);
-        printf("\tTraffic class: 0x%02x\n", (version_tc_fl >> 20) & 0xFF);
-        printf("\tFlow Label: 0x%05x\n", version_tc_fl & 0xFFFFF);
-        printf("\tPayload Length: %u\n", payload_length);
-        printf("\tNext Header: %d\n", ip->ip6_ctlun.ip6_un1.ip6_un1_nxt);
-        printf("\tHop Limit: %d\n", ip->ip6_ctlun.ip6_un1.ip6_un1_hlim);
-        printf("\tSource address: %s\n", inet_ntop(AF_INET6, &(ip->ip6_src), buffer, INET6_ADDRSTRLEN));
-        printf("\tDestination address: %s\n", inet_ntop(AF_INET6, &(ip->ip6_dst), buffer, INET6_ADDRSTRLEN));
-    }
-    return bytes + sizeof(struct ip6_hdr);
 }
 
 const unsigned char* display_ip(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "lib/common.h"
+#include "text_based_display.h"
 
 
 const unsigned char* display_text_protocol(const char* name, const unsigned char* bytes, const unsigned char* end_stream, int verbosity)

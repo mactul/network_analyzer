@@ -22,7 +22,7 @@ struct bootp {
     uint8_t chaddr[16];
     unsigned char sname[64];
     unsigned char file[128];
-    uint8_t vendor_specific[64];
+    uint8_t vendor_specific[];  // Apparently, DHCP can have vendor specific options that are less than the classic 64 bytes.
 } __attribute__((packed));
 
 
@@ -33,6 +33,8 @@ enum DHCP_TLV_TYPES {
     DHCP_TLV_NAMESERVERS = 6,
     DHCP_TLV_HOSTNAME = 12,
     DHCP_TLV_DOMAIN_NAME = 15,
+    DHCP_TLV_NTP_SERVERS = 42,
+    DHCP_TLV_ADDRESS_REQUEST = 50,
     DHCP_TLV_LEASE_TIME = 51,
     DHCP_TLV_MESSAGE_TYPE = 53,
     DHCP_TLV_SERVER_ID = 54,
@@ -46,7 +48,7 @@ enum DHCP_TLV_TYPES {
 static const char* dhcp_messages_types_lookup[] = {"UNKNOWN DHCP MESSAGE", "DISCOVER", "OFFER", "REQUEST", "DECLINE", "ACK", "NACK", "RELEASE"};
 
 
-void display_dhcp_tlv_type(uint8_t type)
+static void display_dhcp_tlv_type(uint8_t type)
 {
     switch(type)
     {
@@ -64,6 +66,12 @@ void display_dhcp_tlv_type(uint8_t type)
             break;
         case DHCP_TLV_DOMAIN_NAME:
             printf(" (Domain Name)");
+            break;
+        case DHCP_TLV_NTP_SERVERS:
+            printf(" (NTP Servers Addresses)");
+            break;
+        case DHCP_TLV_ADDRESS_REQUEST:
+            printf(" (Requested IP Address)");
             break;
         case DHCP_TLV_LEASE_TIME:
             printf(" (IP Address Lease Time)");
@@ -130,6 +138,7 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
             char buffer[INET_ADDRSTRLEN];
 
             case DHCP_TLV_SUBNET_MASK:
+            case DHCP_TLV_ADDRESS_REQUEST:
             case DHCP_TLV_SERVER_ID:
                 if(length != 4)
                 {
@@ -140,6 +149,7 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
 
             case DHCP_TLV_ROUTER:
             case DHCP_TLV_NAMESERVERS:
+            case DHCP_TLV_NTP_SERVERS:
                 if(length < 4 || length % 4 != 0)
                 {
                     return false;
@@ -223,7 +233,7 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
 
 const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
-    if(bytes + sizeof(struct bootp) > end_stream)
+    if(bytes + sizeof(struct bootp) + 4 > end_stream)
     {
         return NULL;
     }
@@ -292,6 +302,10 @@ const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned cha
         }
         else
         {
+            if(bootp->vendor_specific + 64 > end_stream)
+            {
+                return NULL;
+            }
             display_generic_bytes(bootp->vendor_specific, 64, 2);
         }
     }
