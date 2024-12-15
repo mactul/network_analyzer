@@ -1,3 +1,14 @@
+/**
+ * @file main.c
+ * @author Macéo Tuloup
+ * @brief This file is the entry point of the program, its goal is to parse the command line and then call run_pcap
+ * @version 1.0.0
+ * @date 2024-12-14
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,7 +26,7 @@ typedef struct {
 
 static void print_help(const char* program_name, const dash_Longopt* options, FILE* output_file)
 {
-    dash_print_usage(program_name, "my_wireshark, version 0.0.1", "", NULL, options, output_file);
+    dash_print_usage(program_name, "my_wireshark, version 1.0.0", "", NULL, options, output_file);
 }
 
 

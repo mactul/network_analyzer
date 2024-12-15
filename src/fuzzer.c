@@ -1,3 +1,14 @@
+/**
+ * @file fuzzer.c
+ * @author Macéo Tuloup
+ * @brief This file is not compiled with the project, it's a replacement for main.c when compiling the fuzzer.
+ * @version 1.0.0
+ * @date 2024-12-14
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

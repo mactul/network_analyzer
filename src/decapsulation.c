@@ -49,6 +49,18 @@ void decapsulation(const unsigned char* left_bytes, const unsigned char* end_str
         }
     }
 
+    if(protocol == 0x29)
+    {
+        // ipv6 encapsulation
+        printf("Encapsulated ");
+        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity)) == NULL)
+        {
+            fprintf(stderr, "Malformed IP header\n\n");
+            return;
+        }
+    }
+
+
     if(protocol == 0x01)
     {
         if((left_bytes = display_icmp(left_bytes, end_stream, verbosity)) == NULL)
@@ -138,6 +150,14 @@ SCTP:  // This ugly label is used when a sctp segment contains multiple data chu
     else if(dest_port == 23 || src_port == 23)
     {
         left_bytes = display_telnet(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 21 || src_port == 21 || dest_port == 20 || src_port == 20)
+    {
+        left_bytes = display_ftp(left_bytes, end_stream, verbosity);
+    }
+    else if(dest_port == 990 || src_port == 990 || dest_port == 989 || src_port == 989)
+    {
+        left_bytes = display_ftps(left_bytes, end_stream, verbosity);
     }
 
     if(verbosity > 2)
