@@ -13,5 +13,6 @@
  * @return A pointer to the data carried in the icmp packet or NULL if the header was malformed.
  */
 const unsigned char* display_icmp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity);
+const unsigned char* display_icmp6(const unsigned char* bytes, const unsigned char* end_stream, int verbosity);
 
 #endif

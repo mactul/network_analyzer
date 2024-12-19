@@ -53,10 +53,7 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
     if(max_hex > 1)
         max_hex /= 2;
 
-    for(int i = 0; i < tab_count; i++)
-    {
-        putchar('\t');
-    }
+    display_n_tabs(tab_count);
     for(int i = 0; i <= len - max_hex; i += max_hex)
     {
         for(int j = 0; j < max_hex; j++)
@@ -73,10 +70,7 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
             display_byte(bytes[i+j]);
         }
         putchar('\n');
-        for(int j = 0; j < tab_count; j++)
-        {
-            putchar('\t');
-        }
+        display_n_tabs(tab_count);
     }
     for(int i = (len / max_hex) * max_hex; i < len; i++)
     {

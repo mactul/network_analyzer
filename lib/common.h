@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+#ifdef __GNUC__
+    #define ATTRIBUTE_FALLTHROUGH __attribute__((fallthrough))
+#else
+    #define ATTRIBUTE_FALLTHROUGH
+#endif
+
 /**
  * @brief Display a byte if it's a printable ascii char, else display an UTF-8 dot
  * 
@@ -38,5 +44,13 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count);
  * @param len The number of bytes the address have.
  */
 void display_hardware_addr(const uint8_t* addr, uint8_t len);
+
+static inline void display_n_tabs(int tab_count)
+{
+    for(int i = 0; i < tab_count; i++)
+    {
+        putchar('\t');
+    }
+}
 
 #endif

@@ -42,7 +42,7 @@ void decapsulation(const unsigned char* left_bytes, const unsigned char* end_str
     }
     else if(ether_type == ETHERTYPE_IP || ether_type == ETHERTYPE_IPV6)
     {
-        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity)) == NULL)
+        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity, 0, 0)) == NULL)
         {
             fprintf(stderr, "Malformed IP header\n\n");
             return;
@@ -53,7 +53,7 @@ void decapsulation(const unsigned char* left_bytes, const unsigned char* end_str
     {
         // ipv6 encapsulation
         printf("Encapsulated ");
-        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity)) == NULL)
+        if((left_bytes = display_ip(left_bytes, &end_stream, &protocol, verbosity, 0, 0)) == NULL)
         {
             fprintf(stderr, "Malformed IP header\n\n");
             return;
@@ -71,7 +71,7 @@ void decapsulation(const unsigned char* left_bytes, const unsigned char* end_str
     }
     else if(protocol == 0x3A)
     {
-        if((left_bytes = display_icmp(left_bytes, end_stream, verbosity)) == NULL)
+        if((left_bytes = display_icmp6(left_bytes, end_stream, verbosity)) == NULL)
         {
             fprintf(stderr, "Malformed ICMPv6 header\n\n");
             return;
