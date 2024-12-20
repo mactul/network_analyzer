@@ -104,7 +104,7 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
     bytes += 4;
     while(bytes < end_stream)
     {
-        if(bytes + 2 * sizeof(uint8_t) > end_stream)
+        if(bytes + sizeof(uint8_t) > end_stream)
         {
             return false;
         }
@@ -118,6 +118,11 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
         if(type == DHCP_TLV_NOP)
         {
             continue;
+        }
+
+        if(bytes + sizeof(uint8_t) > end_stream)
+        {
+            return false;
         }
 
         uint8_t length = *bytes;
