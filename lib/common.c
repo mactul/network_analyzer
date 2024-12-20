@@ -40,7 +40,7 @@ void display_byte(unsigned char byte)
     }
 }
 
-void display_byte_highlighted(unsigned char byte)
+static void display_byte_highlighted(unsigned char byte)
 {
     if(byte >= ' ' && byte <= '~')
     {

@@ -10,6 +10,7 @@ Ce projet a pour but de réaliser un outil capable d'analyzer les trames réseau
     - [Warnings du compilateur](#warnings-du-compilateur)
   - [Utilisation du programme](#utilisation-du-programme)
     - [Affichage et taille d'écran](#affichage-et-taille-décran)
+    - [Protocoles supportés](#protocoles-supportés)
   - [Sécurité](#sécurité)
     - [Conclusion](#conclusion)
 
@@ -114,6 +115,32 @@ Finalement, l'option `-h` affiche l'aide.
 En mode verbeux, le programme affiche les données sous la forme d'une sorte de hexdump avec les données en hexadécimal et en ascii à côté.  
 Pour faciliter la lecture de cet affichage, le nombre de colones affichée est toujours un multiple de 2, mais cet affichage s'adapte également à la taille du terminal, c'est donc le plus grand multiple de 2 affichable dans l'espace donné de la console.
 
+
+### Protocoles supportés
+
+Le programme supporte les protocoles:
+- Ethernet
+- IPv4
+- IPv6
+- ARP
+- ICMP
+- ICMPv6
+- UDP
+- TCP
+- SCTP
+- DHCP
+- DNS
+- HTTP(S)
+- SMTP(S)
+- POP
+- IMAP(S)
+- Telnet
+- FTP(S)
+
+Tout ces protocoles ayant tous de très nombreux cas particuliers, il n'est pas possible d'avoir un jeu de données concis qui couvre tout les cas que j'ai put mettre en place. Le plus petit jeu de données que j'ai put générer qui couvre la majorité de mon code fait 903 fichiers, ce qui n'est pas raisonnable à inclure comme jeu de données de démonstration.
+
+J'inclue donc un jeu de données restreint (demo_files) contenant des fichiers parfois difficile à trouver, permettant de voir une partie raisonnable du travail fourni.
+
 ## Sécurité
 
 Tout programme branché sur le réseau est à risque en ce qui concerne la sécurité. C'est d'autant plus vrai pour un programme comme celui-ci, qui analyse des dizaines de protocoles et qui risque rapidement un buffer overflow au détour d'un paquet mal formaté.
@@ -142,4 +169,4 @@ Puis on attend un éventuel crash.
 
 ### Conclusion
 
-Après plus d'une centaine d'heure à tester mon code avec des dizaines de millions de fichiers sans générer de crash, je peux à présent dire qu'il est improbable qu'il soit possible de faire planter mon code et qu'il est encore plus improbable qu'une faille soit exploitable. Il n'y a donc pas de problème particulier à l'exposer sur le réseau.
+Après plus d'une centaine d'heure à tester mon code a un rythme de 2 millions de fichiers par seconde, sans générer de crash, je peux à présent dire qu'il est improbable qu'il soit possible de faire planter mon code et qu'il est encore plus improbable qu'une faille soit exploitable. Il n'y a donc pas de problème particulier à l'exposer sur le réseau.

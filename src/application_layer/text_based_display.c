@@ -5,7 +5,7 @@
 #include "text_based_display.h"
 
 
-bool startswith(const char* str, const char* ref)
+static bool startswith(const char* str, const char* ref)
 {
     while(*str != '\0' && *ref != '\0' && *str == *ref)
     {
