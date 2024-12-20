@@ -166,7 +166,7 @@ SCTP:  // This ugly label is used when a sctp segment contains multiple data chu
         if(left > 0)
         {
             printf("Data:\n");
-            display_generic_bytes(left_bytes, left, 1);
+            display_generic_bytes(left_bytes, left, 1, NULL, 0);
         }
     }
     putchar('\n');

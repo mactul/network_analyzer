@@ -147,7 +147,7 @@ int run_pcap(int verbosity, char* interface_name, char* filter, char* offline_fi
         }
     }
 
-    printf("start capture\n");
+    printf("Starting Capture\n\n");
 
     pcap_loop(interface, -1, callback, (u_char*)((size_t)verbosity));
 

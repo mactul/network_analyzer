@@ -170,7 +170,7 @@ static bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* e
 
             default:
                 putchar('\n');
-                display_generic_bytes(bytes, length, 4);
+                display_generic_bytes(bytes, length, 4, NULL, 0);
         }
 
         bytes += rounded_length;
@@ -399,7 +399,7 @@ READ_CHUNKS:
                 if(verbosity > 2)
                 {
                     printf("\t\tState Cookie:\n");
-                    display_generic_bytes(bytes + sizeof(struct sctp_chunk_hdr), chunk_length - (uint16_t)sizeof(struct sctp_chunk_hdr), 3);
+                    display_generic_bytes(bytes + sizeof(struct sctp_chunk_hdr), chunk_length - (uint16_t)sizeof(struct sctp_chunk_hdr), 3, NULL, 0);
                 }
                 break;
 
@@ -426,7 +426,7 @@ READ_CHUNKS:
                 if(verbosity > 2 && chunk_length > sizeof(struct sctp_chunk_hdr))
                 {
                     printf("\t\tData:\n");
-                    display_generic_bytes(bytes + sizeof(struct sctp_chunk_hdr), chunk_length - (uint16_t)sizeof(struct sctp_chunk_hdr), 3);
+                    display_generic_bytes(bytes + sizeof(struct sctp_chunk_hdr), chunk_length - (uint16_t)sizeof(struct sctp_chunk_hdr), 3, NULL, 0);
                 }
         }
         bytes += rounded_chunk_length;

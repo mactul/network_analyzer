@@ -34,7 +34,7 @@ void display_string(const unsigned char* str, int max_len);
  * @param len The number of bytes to display.
  * @param tab_count How many indentations should the function put before each line.
  */
-void display_generic_bytes(const unsigned char* bytes, int len, int tab_count);
+void display_generic_bytes(const unsigned char* bytes, int len, int tab_count, const unsigned char* to_highlight, int nb_to_highlight);
 
 
 /**

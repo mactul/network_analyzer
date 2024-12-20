@@ -198,7 +198,7 @@ const unsigned char* display_icmp(const unsigned char* bytes, const unsigned cha
     {
         char buffer[INET_ADDRSTRLEN];
         case DESTINATION_UNREACHABLE:
-            if(bytes + 4 > end_stream)
+            if(bytes + sizeof(struct dst_unreachable_hdr) > end_stream)
             {
                 return NULL;
             }
@@ -217,7 +217,7 @@ const unsigned char* display_icmp(const unsigned char* bytes, const unsigned cha
             }
             break;
         case TIME_EXCEEDED:
-            if(bytes + sizeof(struct dst_unreachable_hdr) > end_stream)
+            if(bytes + 4 > end_stream)
             {
                 return NULL;
             }

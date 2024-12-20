@@ -119,7 +119,7 @@ static bool display_rr(const unsigned char* bytes, const unsigned char* end_stre
     {
         printf("\t\tData Length: %d\n", data_len);
         printf("\t\tData:\n");
-        display_generic_bytes(bytes + *offset, data_len, 3);
+        display_generic_bytes(bytes + *offset, data_len, 3, NULL, 0);
     }
 
     *offset += data_len;

@@ -1,7 +1,21 @@
 #include <stdio.h>
 #include <sys/ioctl.h>
+#include <stdbool.h>
 
 #include "common.h"
+
+
+static bool need_highlight(unsigned char byte, const unsigned char* to_highlight, int nb_to_highlight)
+{
+    for(int i = 0; i < nb_to_highlight; i++)
+    {
+        if(byte == to_highlight[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 
 void display_hardware_addr(const uint8_t* addr, uint8_t len)
@@ -26,6 +40,19 @@ void display_byte(unsigned char byte)
     }
 }
 
+void display_byte_highlighted(unsigned char byte)
+{
+    if(byte >= ' ' && byte <= '~')
+    {
+        printf("\033[31m%c\033[0m", byte);
+    }
+    else
+    {
+        printf("\033[31m\U000000B7\033[0m");
+    }
+}
+
+
 void display_string(const unsigned char* str, int max_len)
 {
     while(max_len > 0 && *str)
@@ -36,7 +63,7 @@ void display_string(const unsigned char* str, int max_len)
     }
 }
 
-void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
+void display_generic_bytes(const unsigned char* bytes, int len, int tab_count, const unsigned char* to_highlight, int nb_to_highlight)
 {
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
@@ -58,7 +85,14 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
     {
         for(int j = 0; j < max_hex; j++)
         {
-            printf("%02x", bytes[i+j]);
+            if(need_highlight(bytes[i+j], to_highlight, nb_to_highlight))
+            {
+                printf("\033[31m%02x\033[0m", bytes[i+j]);
+            }
+            else
+            {
+                printf("%02x", bytes[i+j]);
+            }
             if(j & 0x1)
             {
                 putchar(' ');
@@ -67,14 +101,28 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
 
         for(int j = 0; j < max_hex; j++)
         {
-            display_byte(bytes[i+j]);
+            if(need_highlight(bytes[i+j], to_highlight, nb_to_highlight))
+            {
+                display_byte_highlighted(bytes[i+j]);
+            }
+            else
+            {
+                display_byte(bytes[i+j]);
+            }
         }
         putchar('\n');
         display_n_tabs(tab_count);
     }
     for(int i = (len / max_hex) * max_hex; i < len; i++)
     {
-        printf("%02x", bytes[i]);
+        if(need_highlight(bytes[i], to_highlight, nb_to_highlight))
+        {
+            printf("\033[31m%02x\033[0m", bytes[i]);
+        }
+        else
+        {
+            printf("%02x", bytes[i]);
+        }
         if(i & 0x1)
         {
             putchar(' ');
@@ -94,7 +142,14 @@ void display_generic_bytes(const unsigned char* bytes, int len, int tab_count)
     }
     for(int i = (len / max_hex) * max_hex; i < len; i++)
     {
-        display_byte(bytes[i]);
+        if(need_highlight(bytes[i], to_highlight, nb_to_highlight))
+        {
+            display_byte_highlighted(bytes[i]);
+        }
+        else
+        {
+            display_byte(bytes[i]);
+        }
     }
 
     putchar('\n');

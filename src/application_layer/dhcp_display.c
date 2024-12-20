@@ -215,7 +215,7 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
 
             default:
                 putchar('\n');
-                display_generic_bytes(bytes, length, 3);
+                display_generic_bytes(bytes, length, 3, NULL, 0);
         }
         putchar('\n');
 
@@ -306,7 +306,7 @@ const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned cha
             {
                 return NULL;
             }
-            display_generic_bytes(bootp->vendor_specific, 64, 2);
+            display_generic_bytes(bootp->vendor_specific, 64, 2, NULL, 0);
         }
     }
 
