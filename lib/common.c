@@ -1,3 +1,14 @@
+/**
+ * @file common.c
+ * @author Macéo Tuloup
+ * @brief This file contains useful display functions that are used across multiple files of the project.
+ * @version 1.0.0
+ * @date 2024-12-20
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <stdbool.h>

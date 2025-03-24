@@ -1,127 +1,155 @@
-# Macéo Tuloup - Analyzeur réseau
+# Network Analyzer
 
-Ce projet a pour but de réaliser un outil capable d'analyzer les trames réseau sous Linux et de les afficher d'une façon lisible pour un humain.
+The aim of this project is to create a tool capable of analyzing network frames under Linux and displaying them in a human-readable way.
 
-- [Macéo Tuloup - Analyzeur réseau](#macéo-tuloup---analyzeur-réseau)
-  - [Architecture du Projet](#architecture-du-projet)
+- [Network Analyzer](#network-analyzer)
+  - [Project architecture](#project-architecture)
   - [Compilation](#compilation)
-    - [Qu'est-ce que PowerMake et pourquoi l'avoir utilisé sur ce projet ?](#quest-ce-que-powermake-et-pourquoi-lavoir-utilisé-sur-ce-projet-)
-    - [Utilisation de PowerMake](#utilisation-de-powermake)
-    - [Warnings du compilateur](#warnings-du-compilateur)
-  - [Utilisation du programme](#utilisation-du-programme)
-    - [Affichage et taille d'écran](#affichage-et-taille-décran)
-    - [Protocoles supportés](#protocoles-supportés)
-  - [Sécurité](#sécurité)
+    - [What is PowerMake and why did you use it on this project?](#what-is-powermake-and-why-did-you-use-it-on-this-project)
+    - [Using PowerMake](#using-powermake)
+    - [Compiler warnings](#compiler-warnings)
+  - [Using the program](#using-the-program)
+    - [Display and screen size](#display-and-screen-size)
+    - [Supported protocols](#supported-protocols)
+  - [Security](#security)
     - [Conclusion](#conclusion)
 
 
-## Architecture du Projet
+## Project architecture
 
-A la racine du projet, on trouve 2 dossiers:
+At the root of the project are 2 folders:
 - lib
 - src
 
-`lib` contient:
-- la librairie OpenSource [Dash](https://github.com/nothixy/dash) qui a été à l'origine conçue par Valentin Foulon, puis ajustée et fiabilisée par moi. Cette librairie a simplement été copiée ici pour des raison de simplicité mais ne constitue pas un élément du projet à évaluer.
-- Les fichiers `common.h` et `common.c` qui contiennent quelques fonctions d'affichages que j'utilise à plusieurs endroits du projet.
+`lib` contains:
+- the OpenSource [Dash] library (https://github.com/nothixy/dash), originally designed by Valentin Foulon, then fine-tuned and made more reliable by me. This library has simply been copied here for simplicity's sake.
 
-`src` contient le code faisant le coeur du programme.
-- `main.c` lit la ligne de commande avant de passer la main à la fonction `run_pcap` de `listener.c`
-- `listener.c` contient tout le code lié à la librairie pcap. Ce fichier implémente la fonction `run_pcap`, qui ouvre les interfaces (online ou offline) et démarre la capture.
-- l'analyse de chaque trame réseau est faite dans `decapsulation.c`, qui se chargera d'appeler les bonnes fonctions pour lire les protocoles de la couche physique, de la couche réseau, puis de la couche transport et enfin de la couche application.
-- Les dossiers `*_layer` contiennent les fichiers permettant l'affichage des différents protocoles.
-- Vous noterez peut-être la présence d'un fichier `fuzzer.c`, ce fichier n'est pas compilé avec le projet, son role est discuté dans la section [sécurité](#securite).
+- The `common.h` and `common.c` files, which contain some display functions that I use in several places in the project.
+
+`src` contains the core code of the program.
+- `main.c` reads the command line before handing over to the `run_pcap` function in `listener.c`.
+
+- `listener.c` contains all the code linked to the pcap library. This file implements the `run_pcap` function, which opens the interfaces (online or offline) and starts the capture.
+
+- each network frame is analyzed in `decapsulation.c`, which calls the appropriate functions to read the protocols of the physical layer, the network layer, the transport layer and the application layer.
+
+- The `*_layer` folders contain the files for displaying the various protocols.
+
+- You may notice the presence of a `fuzzer.c` file, which is not compiled with the project. Its role is discussed in the [security](#security) section.
+
 
 ## Compilation
 
-Bien que je fournisse un Makefile afin d'être assuré que vous parveniez à compiler le projet, ce projet n'a pas été conçu pour être compilé via GNU Make mais via [PowerMake](https://github.com/mactul/powermake), que je vous invite grandement à utiliser.
 
-### Qu'est-ce que PowerMake et pourquoi l'avoir utilisé sur ce projet ?
-
-PowerMake est un outil permettant d'automatiser la compilation, tout comme GNU Make, mais qui offre énormément de fonctionnalités très agréable qui facilite grandement le développement.
-
-PowerMake est un outil que j'ai moi-même développé au cours des 6 derniers mois, je suis très fier de cet outil et c'est pourquoi je voulais l'inclure dans ce projet. Par ailleurs, PowerMake m'apporte énormément de confort dont j'ai maintenant du mal à me débarrasser.
-
-Les fonctionnalités que j'utilise tout particulièrement dans ce projet sont entre autres:
-- la compilation de tout les fichiers .c qui correspondent à un pattern bien défini.
-- la capacité de compiler en release ou en debug dans différents dossiers avec différentes options de compilation en ajoutant un simple argument sur la ligne de commande
-- La traduction de flags de compilateurs, ce qui me permet simplement d'ajouter le flag `-fsecurity`, ce qui active tout les flags compatibles avec mon compilateur permettant d'améliorer la sécurité (Sur ma machine cela représente une trentaine de flags).
+This project is designed to be compiled with [PowerMake](https://github.com/mactul/powermake).
 
 
-### Utilisation de PowerMake
+### What is PowerMake and why did you use it on this project?
 
-Installer PowerMake se fait aisément via pip (en assumant que python >= 3.7 et pip sont déjà installés).
+
+PowerMake is a tool for automating compilation, just like GNU Make, but with a host of very pleasant features that make development much easier.
+
+PowerMake is a tool I've developed myself over the last 6 months which provides me with an enormous amount of comfort, which I'm now finding hard to get rid of.
+
+The features I'm using particularly in this project include
+
+- compilation of all .c files corresponding to a well-defined pattern.
+
+- the ability to compile in release or debug in different folders with different compilation options by adding a simple argument on the command line
+
+- translation of compiler flags, so I can simply add the `-fsecurity` flag, which activates all the security-enhancing flags compatible with my compiler (on my machine, that's around thirty flags).
+
+
+
+### Using PowerMake
+
+
+PowerMake is easily installed via pip (assuming python >= 3.7 and pip are already installed).
 ```sh
 pip3 install -U powermake
 ```
 
-Une fois PowerMake installé, il suffit de lancer `makefile.py` avec `python`:
+
+Once PowerMake is installed, simply run `makefile.py` with `python`:
 ```sh
 python3 makefile.py
 ```
-> [!NOTE]
-> Le programme généré se trouvera à l'emplacement `./build/Linux/x64/release/bin/my_wireshark`
 
-Je peux utiliser l'option `-r` pour forcer à tout recompiler, l'option `-v` pour voir les commandes lancées et l'option `-d` pour compiler mon programme en debug:
+> [!NOTE]
+> The generated program will be located at `./build/Linux/x64/release/bin/my_wireshark`.
+
+
+I can use the `-r` option to force recompiling, the `-v` option to see the commands run and the `-d` option to compile my program in debug mode:
+
 ```sh
 python3 makefile.py -rvd
 ```
-> [!NOTE]
-> Le programme généré se trouvera à l'emplacement `./build/Linux/x64/debug/bin/my_wireshark`
 
-D'autres options sont disponibles, la liste complète peut être trouvée à l'aide de:
+> [!NOTE]
+> The generated program will be located at `./build/Linux/x64/debug/bin/my_wireshark`.
+
+
+Other options are available, the complete list can be found using:
+
 ```sh
 python3 makefile.py -h
 ```
 
-### Warnings du compilateur
 
-Je compile mon code sous GCC 14.2 avec énormément de warnings et d'options, certains sont tout nouveaux et encore expérimentaux.
+### Compiler warnings
 
-Si vous utilisez un plus vieux compilateur, PowerMake devrait automatiquement retirer les options incompatibles, en revanche, vous pourriez avoir des warnings que je n'ai pas.
+I compile my code under GCC 14.2 with a huge number of warnings and options, some of which are brand new and still experimental.
 
-En particulier, vous êtes susceptibles d'avoir un warning `-Wcpp` qui se déclenche si votre système ne supporte pas `-D_FORTIFY_SOURCE=3` et descend l'option à la valeur 2.
+If you're using an older compiler, PowerMake should automatically remove incompatible options, but you may get warnings that I don't have.
 
-Vous pourriez également avoir un faux-positif provenant de l'option `-fanalyzer` car dans ses anciennes versions, cette option levait régulièrement des erreurs inexistantes.
+In particular, you're likely to get a `-Wcpp` warning which triggers if your system doesn't support `-D_FORTIFY_SOURCE=3` and drops the option to value 2.
+
+You may also get a false-positive from the `-fanalyzer` option, as in older versions this option regularly raised non-existent errors.
+
+## Using the program
+
+The compiled program can be found in `./build/Linux/x64/release/bin/my_wireshark` or `./build/Linux/x64/debug/bin/my_wireshark`.
 
 
-## Utilisation du programme
+To listen on a network interface, this program requires root rights.  
+You can launch the program as follows:
 
-Le programme compilé se trouve dans `./build/Linux/x64/release/bin/my_wireshark` ou `./build/Linux/x64/debug/bin/my_wireshark`.
-
-Pour écouter sur une interface réseau, ce programme nécessite les droits root.  
-Vous pouvez donc lancer le programme ainsi:
 ```sh
 sudo ./build/Linux/x64/release/bin/my_wireshark
 ```
-S'il est lancé ainsi, sans argument, le programme vous demandera de sélectionner une interface parmi une liste, puis commencera à afficher les paquets qui passent sur cette interface.
 
-Vous pouvez également lui fournir une interface pour qu'il se lance immédiatement.
+If you run it like this, with no arguments, the program will ask you to select an interface from a list, then start displaying packets passing over that interface.
+
+You can also provide an interface for it to start immediately.
+
 ```sh
 sudo ./build/Linux/x64/release/bin/my_wireshark -i wlan0
 ```
 
-L'autre mode de fonctionnement est le mode offline, ce mode lit un fichier .cap, .pcap ou .pcapng et affiche les paquets capturés dans ce fichier. Ce mode ne requiert pas les permissions root.
+The other operating mode is the offline mode, which reads a .cap, .pcap or .pcapng file and displays the packets captured in it. This mode does not require root permissions.
 ```sh
 ./build/Linux/x64/release/bin/my_wireshark -o file.pcap
 ```
 
-Vous pouvez également ajouter un filtre grace à l'option `-f` ou choisir un niveau de verbosité entre 1 et 3 grace à l'option `-v`.  
-Finalement, l'option `-h` affiche l'aide.
+
+You can also add a filter with the `-f` option, or choose a verbosity level between 1 and 3 with the `-v` option.  
+Finally, the `-h` option displays help.
 
 
-### Affichage et taille d'écran
+### Display and screen size
 
-En mode verbeux, le programme affiche les données sous la forme d'une sorte de hexdump avec les données en hexadécimal et en ascii à côté.  
-Pour faciliter la lecture de cet affichage, le nombre de colones affichée est toujours un multiple de 2, mais cet affichage s'adapte également à la taille du terminal, c'est donc le plus grand multiple de 2 affichable dans l'espace donné de la console.
+In verbose mode, the program displays data as a kind of hexdump, with data in hexadecimal and ascii next to it.  
+To make this display easier to read, the number of columns displayed is always a multiple of 2, but this display also adapts to the size of the terminal, so it's the largest multiple of 2 that can be displayed in the given console space.
 
 
-### Protocoles supportés
+### Supported protocols
 
-Le programme supporte les protocoles:
+The program supports the following protocols:
+
 - Ethernet
 - IPv4
 - IPv6
+- IPv6 encapsulated in IPv4
 - ARP
 - ICMP
 - ICMPv6
@@ -137,36 +165,44 @@ Le programme supporte les protocoles:
 - Telnet
 - FTP(S)
 
-Tout ces protocoles ayant tous de très nombreux cas particuliers, il n'est pas possible d'avoir un jeu de données concis qui couvre tout les cas que j'ai put mettre en place. Le plus petit jeu de données que j'ai put générer qui couvre la majorité de mon code fait 903 fichiers, ce qui n'est pas raisonnable à inclure comme jeu de données de démonstration.
+As all these protocols have many special cases, it's not possible to have a concise dataset that covers all the cases I've been able to set up. The smallest dataset I've been able to generate that covers most of my code is 903 files long, which isn't reasonable to include as a demo dataset.
 
-J'inclue donc un jeu de données restreint (demo_files) contenant des fichiers parfois difficile à trouver, permettant de voir une partie raisonnable du travail fourni.
+I therefore include a restricted dataset (demo_files) containing files that are sometimes difficult to find, allowing you to see a reasonable portion of the work provided.
 
-## Sécurité
+## Security
 
-Tout programme branché sur le réseau est à risque en ce qui concerne la sécurité. C'est d'autant plus vrai pour un programme comme celui-ci, qui analyse des dizaines de protocoles et qui risque rapidement un buffer overflow au détour d'un paquet mal formaté.
-
-Tout au long de l'écriture de ce programme, j'ai essayé de garder cet aspect en tête et de produire un programme le plus fiable possible, voici quelques unes des mesures mises en place:
-- Compilation avec le maximum d'options de mitigations des failles de sécurité (ASLR, Full Relro, Stack Canaries, etc...)
-- Le code ne fait jamais confiance à la moindre valeur de taille indiquée par les paquets et vérifie toujours que ce qui est indiqué se trouve dans les bornes du buffer.
-- Le code a été testé très intensivement à l'aide de fuzzers (explication ci-dessous).
-
-Un fuzzer est un programme qui à partir d'un corpus donné de fichiers valides (ici des fichiers pcap) va pour chaque fichier du corpus, le muter légèrement puis lancer mon programme avec le fichier muté. Si le fichier muté permet d'explorer un nouveau branchement du code, il est ajouté au corpus. Ce processus est répété en boucle, pendant des heures, si bien qu'à la fin, chaque ligne du code source est testée avec toutes sortes de valeurs extravagantes et s'il y a au moins un moyen de faire planter le programme, le fuzzer y parviendra presque assurément au bout d'un moment.
-
-J'ai utilisé 2 fuzzers différents, *LLVM libfuzzer* et *American Fuzzy Loop*, le second étant plus complexe à mettre en place, je ne détaillerais que l'usage du premier.
+Any program connected to the network is at risk when it comes to security. This is all the more true for a program such as this one, which analyzes dozens of protocols and quickly runs the risk of buffer overflow if a poorly formatted packet is detected.
 
 
-*LLVM libfuzzer* est intégré à Clang, ce qui fait qu'il peut-être utilisé avec les autres outils d'analyse de Clang, en particulier je l'utilise avec l'address sanitizer de sorte à ce qu'une exception soit générée chaque fois qu'une lecture/écriture est effectuée en dehors des limites du buffer ou bien qu'il y ai un memory leak.  
-Pour l'utiliser il suffit de compiler le programme en remplaçant `main.c` par `fuzzer.c` et ajouter les options `fsanitize=address,fuzzer`, le fichier `fuzzer_makefile.py` est là pour faire ça:
+Throughout the writing of this program, I tried to keep this aspect in mind and produce the most reliable program possible. Here are some of the measures I implemented:
+
+- Compilation with as many security mitigation options as possible (ASLR, Full Relro, Stack Canaries, etc.).
+
+- The code never trusts any size value indicated by packets, and always checks that what is indicated is within the buffer bounds.
+
+- The code has been extensively tested using fuzzers (see explanation below).
+
+
+A fuzzer is a program which, given a given corpus of valid files (in this case pcap files), will slightly mutate each file in the corpus and then run my program with the mutated file. If the mutated file allows a new branch of the code to be explored, it is added to the corpus. This process is repeated in a loop, for hours on end, so that every line of source code is tested with all sorts of extravagant values and if there's at least one way to make the program crash, the fuzzer will almost certainly succeed after a while.
+
+I've used 2 different fuzzers, *LLVM libfuzzer* and *American Fuzzy Loop*, the latter being more complex to set up, I'll only detail the use of the former.
+
+
+*LLVM libfuzzer* is integrated into Clang, so it can be used with Clang's other analysis tools. In particular, I use it with the address sanitizer so that an exception is generated whenever a read/write is performed outside the buffer limits or there is a memory leak.  
+To use it, simply compile the program by replacing `main.c` with `fuzzer.c` and add the options `fsanitize=address,fuzzer`, the `fuzzer_makefile.py` file is there to do this:
+
 ```sh
 python3 fuzzer_makefile.py -rv
 ```
-Ensuite, il faut lancer le programme en fournissant un corpus de fichiers à muter.
+
+Next, run the program, providing a corpus of files to be mutated.
 ```sh
 ./build/Linux/x64/release/bin/fuzzer ./pcap_files/
 ```
 
-Puis on attend un éventuel crash.
+Then wait for a possible crash.
+
 
 ### Conclusion
 
-Après plus d'une centaine d'heure à tester mon code a un rythme de 2 millions de fichiers par seconde, sans générer de crash, je peux à présent dire qu'il est improbable qu'il soit possible de faire planter mon code et qu'il est encore plus improbable qu'une faille soit exploitable. Il n'y a donc pas de problème particulier à l'exposer sur le réseau.
+After more than a hundred hours of testing my code at a rate of 2 million files per second, without generating a crash, I can now say that it is unlikely that it is possible to crash my code and that it is even more unlikely that a flaw could be exploited. So there's no particular problem in exposing it to the network.

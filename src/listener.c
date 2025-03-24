@@ -1,3 +1,14 @@
+/**
+ * @file listener.c
+ * @author Macéo Tuloup
+ * @brief This file handle everything related to the pcap library.
+ * @version 1.0.0
+ * @date 2024-12-20
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +22,12 @@
 
 static char _errbuf[PCAP_ERRBUF_SIZE];
 
+/**
+ * @brief Find all interfaces available and prompt the user to choose one.
+ * 
+ * @param buffer A buffer that will contain the name of the interface selected by the user.
+ * @param buffer_size The size of the buffer.
+ */
 static void select_interface(char* buffer, unsigned int buffer_size)
 {
     int answer = 0;
@@ -109,8 +126,16 @@ int run_pcap(int verbosity, char* interface_name, char* filter, char* offline_fi
             goto CLOSE;
         }
 
-        pcap_set_immediate_mode(interface, 1);
-        pcap_set_promisc(interface, 1);
+        if(pcap_set_immediate_mode(interface, 1))
+        {
+            pcap_perror(interface, "Set immediate mode error: ");
+            goto CLOSE;
+        }
+        if(pcap_set_promisc(interface, 1))
+        {
+            pcap_perror(interface, "Set promisc mode error: ");
+            goto CLOSE;
+        }
 
         if((r = pcap_activate(interface)))
         {

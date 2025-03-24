@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-#ifdef __GNUC__
-    #define ATTRIBUTE_FALLTHROUGH __attribute__((fallthrough))
-#else
-    #define ATTRIBUTE_FALLTHROUGH
-#endif
 
 /**
  * @brief Display a byte if it's a printable ascii char, else display an UTF-8 dot

@@ -1,3 +1,14 @@
+/**
+ * @file decapsulation.c
+ * @author Macéo Tuloup
+ * @brief This file is the only file that know every protocol, the function decapsulation call every display function to display all parts of the packet.
+ * @version 1.0.0
+ * @date 2024-12-20
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <stdio.h>
 #include <pcap.h>
 #include <net/ethernet.h>
@@ -20,9 +31,11 @@
 void decapsulation(const unsigned char* left_bytes, const unsigned char* end_stream, int verbosity)
 {
     uint16_t ether_type = 0x0000;
-    uint8_t protocol = 0xFF;
+    uint8_t protocol = 0xFF;   // 0xFF is a reserved protocol, by setting this value here we make sure that we can't enter a transport layer function if the protocol wasn't specified
     uint16_t dest_port = 0;
     uint16_t src_port = 0;
+
+    // These 2 variables will be set by the sctp function to recover in case their is multiple data chunk in the sctp header.
     int align_offset = 0;
     const unsigned char* sctp_reentrant = NULL;
 
