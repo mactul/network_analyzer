@@ -18,4 +18,4 @@ def on_build(config: powermake.Config):
     powermake.link_files(config, objects)
 
 
-powermake.run("my_wireshark", build_callback=on_build)
+powermake.run("network_analyzer", build_callback=on_build)

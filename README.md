@@ -76,7 +76,7 @@ python3 makefile.py
 ```
 
 > [!NOTE]
-> The generated program will be located at `./build/Linux/x64/release/bin/my_wireshark`.
+> The generated program will be located at `./build/Linux/x64/release/bin/network_analyzer`.
 
 
 I can use the `-r` option to force recompiling, the `-v` option to see the commands run and the `-d` option to compile my program in debug mode:
@@ -86,7 +86,7 @@ python3 makefile.py -rvd
 ```
 
 > [!NOTE]
-> The generated program will be located at `./build/Linux/x64/debug/bin/my_wireshark`.
+> The generated program will be located at `./build/Linux/x64/debug/bin/network_analyzer`.
 
 
 Other options are available, the complete list can be found using:
@@ -108,14 +108,14 @@ You may also get a false-positive from the `-fanalyzer` option, as in older vers
 
 ## Using the program
 
-The compiled program can be found in `./build/Linux/x64/release/bin/my_wireshark` or `./build/Linux/x64/debug/bin/my_wireshark`.
+The compiled program can be found in `./build/Linux/x64/release/bin/network_analyzer` or `./build/Linux/x64/debug/bin/network_analyzer`.
 
 
 To listen on a network interface, this program requires root rights.  
 You can launch the program as follows:
 
 ```sh
-sudo ./build/Linux/x64/release/bin/my_wireshark
+sudo ./build/Linux/x64/release/bin/network_analyzer
 ```
 
 If you run it like this, with no arguments, the program will ask you to select an interface from a list, then start displaying packets passing over that interface.
@@ -123,12 +123,12 @@ If you run it like this, with no arguments, the program will ask you to select a
 You can also provide an interface for it to start immediately.
 
 ```sh
-sudo ./build/Linux/x64/release/bin/my_wireshark -i wlan0
+sudo ./build/Linux/x64/release/bin/network_analyzer -i wlan0
 ```
 
 The other operating mode is the offline mode, which reads a .cap, .pcap or .pcapng file and displays the packets captured in it. This mode does not require root permissions.
 ```sh
-./build/Linux/x64/release/bin/my_wireshark -o file.pcap
+./build/Linux/x64/release/bin/network_analyzer -o file.pcap
 ```
 
 
