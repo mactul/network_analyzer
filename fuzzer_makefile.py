@@ -10,11 +10,9 @@ def on_build(config: powermake.Config):
     config.linker = powermake.linkers.LinkerClang()
 
     if not config.debug:
-        config.add_c_flags("-flto")
-        config.add_ld_flags("-flto")
+        config.add_flags("-flto")
 
-    config.add_c_flags("-ffuzzer")
-    config.add_ld_flags("-ffuzzer")
+    config.add_flags("-ffuzzer")
     config.add_shared_libs("pcap")
     config.add_includedirs("./")
 
