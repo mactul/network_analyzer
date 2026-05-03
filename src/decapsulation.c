@@ -37,7 +37,7 @@ void decapsulation(const unsigned char* left_bytes, const unsigned char* end_str
 
     // These 2 variables will be set by the sctp function to recover in case their is multiple data chunk in the sctp header.
     int align_offset = 0;
-    const unsigned char* sctp_reentrant = NULL;
+    struct sctp_reentrant sctp_reentrant = SCTP_INIT_VALUE;
 
     if((left_bytes = display_ethernet_frame(left_bytes, end_stream, &ether_type, verbosity)) == NULL)
     {
@@ -183,7 +183,7 @@ SCTP:  // This ugly label is used when a sctp segment contains multiple data chu
         }
     }
     putchar('\n');
-    if(sctp_reentrant)
+    if(sctp_reentrant.data_left)
     {
         printf("SCTP (continuation of previous SCTP segment):\n");
         goto SCTP;

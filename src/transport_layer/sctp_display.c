@@ -186,7 +186,7 @@ static bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* e
 }
 
 
-static const unsigned char* display_sctp_data(const unsigned char* bytes, const unsigned char** end_stream, uint16_t rounded_chunk_length, uint16_t chunk_length, int verbosity, const unsigned char** reentrant, int* align_offset)
+static const unsigned char* display_sctp_data(const unsigned char* bytes, const unsigned char** end_stream, uint16_t rounded_chunk_length, uint16_t chunk_length, int verbosity, struct sctp_reentrant* reentrant, int* align_offset)
 {
     assert(chunk_length <= rounded_chunk_length);
     if(chunk_length < sizeof(struct sctp_data_hdr) + sizeof(struct sctp_chunk_hdr))
@@ -210,8 +210,9 @@ static const unsigned char* display_sctp_data(const unsigned char* bytes, const 
     }
     if(*end_stream > bytes + data_length)
     {
-        // There is some data left, maybe their is multiple data chunk, we need to treat this packet then re-enter into this function.
-        *reentrant = *end_stream;
+        // There is some data left, maybe there is multiple data chunk, we need to treat this packet then re-enter into this function.
+        reentrant->_end_stream_save = *end_stream;
+        reentrant->data_left = true;
     }
     *end_stream = bytes + chunk_length - (uint16_t)sizeof(struct sctp_data_hdr) - (uint16_t)sizeof(struct sctp_chunk_hdr);
     *align_offset = rounded_chunk_length - chunk_length;
@@ -300,16 +301,18 @@ static const unsigned char* display_sctp_sack(const unsigned char* bytes, uint16
 }
 
 
-const unsigned char* display_sctp(const unsigned char* bytes, const unsigned char** end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity, const unsigned char** reentrant, int* align_offset)
+const unsigned char* display_sctp(const unsigned char* bytes, const unsigned char** end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity, struct sctp_reentrant* reentrant, int* align_offset)
 {
-    static int chunk_count = 0;
-    if(*reentrant)
+    reentrant->data_left = false;
+    if(reentrant->_end_stream_save)
     {
         bytes = *end_stream + *align_offset;
-        *end_stream = *reentrant;
-        *reentrant = NULL;
+        *end_stream = reentrant->_end_stream_save;
+        reentrant->_end_stream_save = NULL;
         goto READ_CHUNKS;
     }
+    reentrant->_chunk_count = 0;
+
     if(bytes + sizeof(struct sctphdr) + sizeof(struct sctp_chunk_hdr) > *end_stream)
     {
         return NULL;
@@ -342,7 +345,6 @@ const unsigned char* display_sctp(const unsigned char* bytes, const unsigned cha
 
     bytes += sizeof(struct sctphdr);
 
-    chunk_count = 0;
 READ_CHUNKS:
     *align_offset = 0;
     while(bytes < *end_stream)
@@ -364,8 +366,8 @@ READ_CHUNKS:
         }
         if(verbosity > 2)
         {
-            chunk_count++;
-            printf("\tChunk %d:\n", chunk_count);
+            reentrant->_chunk_count++;
+            printf("\tChunk %d:\n", reentrant->_chunk_count);
             if(chunk->type < SCTP_TYPES_NB)
             {
                 printf("\t\tType: %d (%s)\n", chunk->type, sctp_types_lookup[chunk->type]);
