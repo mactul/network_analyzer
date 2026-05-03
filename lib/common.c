@@ -31,6 +31,12 @@ static bool need_highlight(unsigned char byte, const unsigned char* to_highlight
 
 void display_hardware_addr(const uint8_t* addr, uint8_t len)
 {
+    if(len == 0)
+    {
+        printf("<null>");
+        return;
+    }
+
     for(uint8_t i = 0; i < len-1; i++)
     {
         printf("%02x:", addr[i]);

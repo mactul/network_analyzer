@@ -5,11 +5,11 @@
 #include "text_based_display.h"
 
 
-static bool startswith(const char* str, const char* ref)
+static bool startswith(const unsigned char* bytes, const unsigned char* end_stream, const char* ref)
 {
-    while(*str != '\0' && *ref != '\0' && *str == *ref)
+    while(bytes <= end_stream && *bytes != '\0' && *ref != '\0' && (char)*bytes == *ref)
     {
-        str++;
+        bytes++;
         ref++;
     }
     return *ref == '\0';
@@ -48,39 +48,39 @@ const unsigned char* display_http(const unsigned char* bytes, const unsigned cha
 {
     if(verbosity >= 2)
     {
-        if(startswith((const char*)bytes, "GET "))
+        if(startswith(bytes, end_stream, "GET "))
         {
             puts("HTTP: GET");
         }
-        else if(startswith((const char*)bytes, "POST "))
+        else if(startswith(bytes, end_stream, "POST "))
         {
             puts("HTTP: POST");
         }
-        else if(startswith((const char*)bytes, "HEAD "))
+        else if(startswith(bytes, end_stream, "HEAD "))
         {
             puts("HTTP: HEAD");
         }
-        else if(startswith((const char*)bytes, "OPTIONS "))
+        else if(startswith(bytes, end_stream, "OPTIONS "))
         {
             puts("HTTP: OPTIONS");
         }
-        else if(startswith((const char*)bytes, "PUT "))
+        else if(startswith(bytes, end_stream, "PUT "))
         {
             puts("HTTP: PUT");
         }
-        else if(startswith((const char*)bytes, "PATCH "))
+        else if(startswith(bytes, end_stream, "PATCH "))
         {
             puts("HTTP: PATCH");
         }
-        else if(startswith((const char*)bytes, "DELETE "))
+        else if(startswith(bytes, end_stream, "DELETE "))
         {
             puts("HTTP: DELETE");
         }
-        else if(startswith((const char*)bytes, "CONNECT "))
+        else if(startswith(bytes, end_stream, "CONNECT "))
         {
             puts("HTTP: CONNECT");
         }
-        else if(startswith((const char*)bytes, "TRACE "))
+        else if(startswith(bytes, end_stream, "TRACE "))
         {
             puts("HTTP: TRACE");
         }

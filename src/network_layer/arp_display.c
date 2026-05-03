@@ -8,6 +8,12 @@
 
 static void display_protocol_addr(const uint8_t* addr, uint8_t len)
 {
+    if(len == 0)
+    {
+        puts("<null>");
+        return;
+    }
+
     for(uint8_t i = 0; i < len-1; i++)
     {
         printf("%d.", addr[i]);

@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "lib/common.h"
 #include "sctp_display.h"
@@ -187,7 +188,8 @@ static bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* e
 
 static const unsigned char* display_sctp_data(const unsigned char* bytes, const unsigned char** end_stream, uint16_t rounded_chunk_length, uint16_t chunk_length, int verbosity, const unsigned char** reentrant, int* align_offset)
 {
-    if(rounded_chunk_length < sizeof(struct sctp_data_hdr) + sizeof(struct sctp_chunk_hdr))
+    assert(chunk_length <= rounded_chunk_length);
+    if(chunk_length < sizeof(struct sctp_data_hdr) + sizeof(struct sctp_chunk_hdr))
     {
         return NULL;
     }
@@ -234,7 +236,7 @@ static const unsigned char* display_sctp_init(const unsigned char* bytes, uint16
         if(chunk_length > sizeof(struct sctp_init_hdr) + sizeof(struct sctp_chunk_hdr))
         {
             printf("\t\tTLV parameters:\n");
-            if(!display_chunk_tlv(bytes + sizeof(struct sctp_chunk_hdr) + sizeof(struct sctp_init_hdr), bytes + chunk_length - (uint16_t)sizeof(struct sctp_init_hdr)))
+            if(!display_chunk_tlv(bytes + sizeof(struct sctp_chunk_hdr) + sizeof(struct sctp_init_hdr), bytes + chunk_length - (uint16_t)sizeof(struct sctp_chunk_hdr) - (uint16_t)sizeof(struct sctp_init_hdr)))
             {
                 return NULL;
             }
@@ -270,7 +272,7 @@ static const unsigned char* display_sctp_sack(const unsigned char* bytes, uint16
     const struct sctp_sack_hdr* sctp_sack = (const struct sctp_sack_hdr*)(bytes + sizeof(struct sctp_chunk_hdr));
     uint16_t gap_ack_blocks_nb = ntohs(sctp_sack->gap_ack_blocks_nb);
     uint16_t duplicate_tsn_nb = ntohs(sctp_sack->duplicate_tsn_nb);
-    if(chunk_length < sizeof(struct sctp_sack_hdr) + sizeof(struct sctp_chunk_hdr) + sizeof(uint32_t) * (gap_ack_blocks_nb + duplicate_tsn_nb))
+    if((size_t)chunk_length < sizeof(struct sctp_sack_hdr) + sizeof(struct sctp_chunk_hdr) + sizeof(uint32_t) * ((size_t)gap_ack_blocks_nb + (size_t)duplicate_tsn_nb))
     {
         return NULL;
     }
