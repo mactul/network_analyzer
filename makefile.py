@@ -9,6 +9,9 @@ def on_build(config: powermake.Config):
         config.add_flags("-flto")
 
     config.add_flags("-fsecurity")
+
+    if config.debug:
+        config.remove_flags("-s")
     config.add_shared_libs("pcap")
     config.add_includedirs("./")
 

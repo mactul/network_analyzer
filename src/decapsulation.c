@@ -28,6 +28,9 @@
 #include "decapsulation.h"
 
 
+/**
+ * @fuzz decapsulation(data, data + size, 3);
+*/
 void decapsulation(const unsigned char* left_bytes, const unsigned char* end_stream, int verbosity)
 {
     uint16_t ether_type = 0x0000;

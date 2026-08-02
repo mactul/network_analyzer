@@ -7,7 +7,7 @@
 
 static bool startswith(const unsigned char* bytes, const unsigned char* end_stream, const char* ref)
 {
-    while(bytes <= end_stream && *bytes != '\0' && *ref != '\0' && (char)*bytes == *ref)
+    while(bytes < end_stream && *bytes != '\0' && *ref != '\0' && (char)*bytes == *ref)
     {
         bytes++;
         ref++;

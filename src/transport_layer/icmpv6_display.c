@@ -60,8 +60,6 @@ static void display_icmp6_code(uint8_t type, uint8_t code)
 
 const unsigned char* display_icmp6(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
-    char buffer[INET6_ADDRSTRLEN];
-
     if(bytes + 4 > end_stream)
     {
         return NULL;
@@ -104,7 +102,6 @@ const unsigned char* display_icmp6(const unsigned char* bytes, const unsigned ch
             if(verbosity > 2)
             {
                 uint8_t garbage;
-                printf("\tIP Address: %s\n", inet_ntop(AF_INET6, bytes, buffer, INET6_ADDRSTRLEN));
                 printf("\tCopy of IP Header:\n");
                 bytes = display_ip(bytes+4, &end_stream, &garbage, verbosity, 1, 1);
                 if(bytes == NULL)
