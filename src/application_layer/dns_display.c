@@ -23,6 +23,10 @@ enum PRINT_ERRORS {
     PE_ERROR
 };
 
+/**
+ * @fuzz unsigned int offset = 0;
+ * print_len_str(data, data + size, &offset, true, 100);
+ */
 static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigned char* end_stream, unsigned int *offset, bool display, int stack_recursion_left)
 {
     if(stack_recursion_left <= 0)
@@ -77,6 +81,10 @@ static enum PRINT_ERRORS print_len_str(const unsigned char* bytes, const unsigne
     return r;
 }
 
+/**
+ * @fuzz unsigned int offset = 0;
+ * display_rr(data, data + size, &offset, 3);
+ */
 static bool display_rr(const unsigned char* bytes, const unsigned char* end_stream, unsigned int* offset, int verbosity)
 {
     enum PRINT_ERRORS r;
@@ -130,6 +138,10 @@ static bool display_rr(const unsigned char* bytes, const unsigned char* end_stre
     return true;
 }
 
+
+/**
+ * @fuzz display_dns(data, data + size, 3);
+ */
 const unsigned char* display_dns(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
     if(bytes + sizeof(struct dnshdr) > end_stream)

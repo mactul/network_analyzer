@@ -98,8 +98,15 @@ static void display_dhcp_tlv_type(uint8_t type)
 }
 
 
+/**
+ * @fuzz display_dhcp_tlv(data, data + size);
+ */
 static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* end_stream)
 {
+    if(bytes + sizeof(uint32_t) > end_stream)
+    {
+        return false;
+    }
     printf("\t\tMagic Cookie: 0x%08x\n", ntohl(*((uint32_t*)bytes)));
     bytes += 4;
     while(bytes < end_stream)
@@ -236,6 +243,9 @@ static bool display_dhcp_tlv(const unsigned char* bytes, const unsigned char* en
 }
 
 
+/**
+ * @fuzz display_dhcp(data, data + size, 3);
+ */
 const unsigned char* display_dhcp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
     if(bytes + sizeof(struct bootp) + 4 > end_stream)

@@ -16,6 +16,10 @@ static bool startswith(const unsigned char* bytes, const unsigned char* end_stre
 }
 
 
+/**
+ * @fuzz const unsigned char* h = (const unsigned char*)"\0\n\r";
+ * display_text_protocol("foo", data, data + size, 3, h, 3);
+ */
 const unsigned char* display_text_protocol(const char* name, const unsigned char* bytes, const unsigned char* end_stream, int verbosity, const unsigned char* to_highlight, int nb_to_highlight)
 {
     printf("%s", name);
@@ -44,6 +48,9 @@ const unsigned char* display_text_protocol(const char* name, const unsigned char
 }
 
 
+/**
+ * @fuzz display_http(data, data + size, 3);
+ */
 const unsigned char* display_http(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
     if(verbosity >= 2)

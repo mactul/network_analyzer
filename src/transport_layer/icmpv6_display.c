@@ -58,6 +58,9 @@ static void display_icmp6_code(uint8_t type, uint8_t code)
     }
 }
 
+/**
+ * @fuzz display_icmp6(data, data + size, 3);
+ */
 const unsigned char* display_icmp6(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
     if(bytes + 4 > end_stream)

@@ -52,7 +52,9 @@ static void display_tcp_tlv_type(uint8_t type)
     }
 }
 
-
+/**
+ * @fuzz display_tcp_tlv(data, data + size);
+ */
 static bool display_tcp_tlv(const unsigned char* bytes, const unsigned char* end_stream)
 {
     while(bytes < end_stream)
@@ -164,6 +166,10 @@ static bool display_tcp_tlv(const unsigned char* bytes, const unsigned char* end
 }
 
 
+/**
+ * @fuzz uint16_t dest_port, src_port;
+ * display_tcp(data, data + size, &dest_port, &src_port, 3);
+ */
 const unsigned char* display_tcp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
     if(bytes + sizeof(struct tcphdr) > end_stream)

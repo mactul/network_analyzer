@@ -100,6 +100,9 @@ static void display_sctp_tlv_type(uint16_t type)
     }
 }
 
+/**
+ * @fuzz display_chunk_tlv(data, data + size);
+ */
 static bool display_chunk_tlv(const unsigned char* bytes, const unsigned char* end_stream)
 {
     while(bytes < end_stream)
@@ -220,6 +223,9 @@ static const unsigned char* display_sctp_data(const unsigned char* bytes, const 
 }
 
 
+/**
+ * @fuzz display_sctp_init(data, size, 3);
+ */
 static const unsigned char* display_sctp_init(const unsigned char* bytes, uint16_t chunk_length, int verbosity)
 {
     if(chunk_length < sizeof(struct sctp_init_hdr) + sizeof(struct sctp_chunk_hdr))
@@ -247,6 +253,9 @@ static const unsigned char* display_sctp_init(const unsigned char* bytes, uint16
 }
 
 
+/**
+ * @fuzz display_sctp_heartbeat(data, size, 3);
+ */
 static const unsigned char* display_sctp_heartbeat(const unsigned char* bytes, uint16_t chunk_length, int verbosity)
 {
     if(verbosity > 2)
@@ -263,7 +272,9 @@ static const unsigned char* display_sctp_heartbeat(const unsigned char* bytes, u
     return bytes;
 }
 
-
+/**
+ * @fuzz display_sctp_sack(data, size, 3);
+ */
 static const unsigned char* display_sctp_sack(const unsigned char* bytes, uint16_t chunk_length, int verbosity)
 {
     if(chunk_length < sizeof(struct sctp_sack_hdr) + sizeof(struct sctp_chunk_hdr))
@@ -300,7 +311,15 @@ static const unsigned char* display_sctp_sack(const unsigned char* bytes, uint16
     return bytes;
 }
 
-
+/**
+ * @fuzz uint16_t dest_port, src_port;
+ * struct sctp_reentrant reentrant = SCTP_INIT_VALUE;
+ * int align_offset = 0;
+ * const unsigned char* end_stream = data + size;
+ * do {
+ *     display_sctp(data, &end_stream, &dest_port, &src_port, 3, &reentrant, &align_offset);
+ * } while(reentrant.data_left);
+ */
 const unsigned char* display_sctp(const unsigned char* bytes, const unsigned char** end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity, struct sctp_reentrant* reentrant, int* align_offset)
 {
     reentrant->data_left = false;

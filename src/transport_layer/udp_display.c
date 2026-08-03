@@ -5,7 +5,10 @@
 #include "lib/common.h"
 #include "udp_display.h"
 
-
+/**
+ * @fuzz uint16_t dest_port, src_port;
+ * display_udp(data, data + size, &dest_port, &src_port, 3);
+ */
 const unsigned char* display_udp(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* dest_port, uint16_t* src_port, int verbosity)
 {
     if(bytes + sizeof(struct udphdr) > end_stream)

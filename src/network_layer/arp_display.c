@@ -22,6 +22,9 @@ static void display_protocol_addr(const uint8_t* addr, uint8_t len)
 }
 
 
+/**
+ * @fuzz display_arp(data, data + size, 3);
+ */
 const unsigned char* display_arp(const unsigned char* bytes, const unsigned char* end_stream, int verbosity)
 {
     if(bytes + sizeof(struct arphdr) > end_stream)

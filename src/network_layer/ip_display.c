@@ -19,7 +19,10 @@ enum IPV6_NEXT_HEADERS {
     SHIM6 = 140,
 };
 
-
+/**
+ * @fuzz uint8_t protocol;
+ * display_next_ipv6_header(data, data + size, &protocol, 3, 1);
+ */
 static const unsigned char* display_next_ipv6_header(const unsigned char* bytes, const unsigned char* end_stream, uint8_t* protocol, int verbosity, int tab_count)
 {
     while(bytes != NULL && (
@@ -88,6 +91,11 @@ static const unsigned char* display_next_ipv6_header(const unsigned char* bytes,
 }
 
 
+/**
+ * @fuzz uint8_t protocol;
+ * const unsigned char* end_stream = data + size;
+ * display_ipv6(data, &end_stream, &protocol, 3, 1, false);
+ */
 static const unsigned char* display_ipv6(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity, int tab_count, bool dont_set_end_stream)
 {
     if(bytes + sizeof(struct ip6_hdr) > *end_stream)
@@ -152,6 +160,11 @@ static const unsigned char* display_ipv6(const unsigned char* bytes, const unsig
 }
 
 
+/**
+ * @fuzz uint8_t protocol;
+ * const unsigned char* end_stream = data + size;
+ * display_ipv4(data, &end_stream, &protocol, 3, 1, false);
+ */
 static const unsigned char* display_ipv4(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity, int tab_count, bool dont_set_end_stream)
 {
     if(bytes + sizeof(struct iphdr) > *end_stream)
@@ -242,6 +255,11 @@ static const unsigned char* display_ipv4(const unsigned char* bytes, const unsig
     return bytes + 4 * ip->ihl;
 }
 
+/**
+ * @fuzz uint8_t protocol;
+ * const unsigned char* end_stream = data + size;
+ * display_ip(data, &end_stream, &protocol, 3, 1, false);
+ */
 const unsigned char* display_ip(const unsigned char* bytes, const unsigned char** end_stream, uint8_t* protocol, int verbosity, int tab_count, bool dont_set_end_stream)
 {
     if(bytes + 1 > *end_stream)

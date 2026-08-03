@@ -5,7 +5,10 @@
 #include "lib/common.h"
 #include "ethernet_display.h"
 
-
+/**
+ * @fuzz uint16_t ether_type;
+ * display_ethernet_frame(data, data + size, &ether_type, 3);
+ */
 const unsigned char* display_ethernet_frame(const unsigned char* bytes, const unsigned char* end_stream, uint16_t* ether_type, int verbosity)
 {
     if(bytes + sizeof(struct ether_header) > end_stream)
